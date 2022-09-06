@@ -7,4 +7,4 @@ Created on Nov 3 21:18:26 2020
 """
 import os
 
-ROOT_DIR = r"C:\Users\Administrator.DESKTOP-K75IPPC\Desktop\wood-color"
+ROOT_DIR = r"C:\Users\FEIJINTI\PycharmProjects\wood_color"

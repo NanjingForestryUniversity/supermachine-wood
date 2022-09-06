@@ -21,7 +21,7 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [1, 2]
+FEATURE_INDEX = [0, 1, 2, 6, 7]
 
 
 class WoodClass(object):
@@ -141,7 +141,7 @@ class WoodClass(object):
             cv2.imwrite(str(self.image_num) + ".bmp", img)
             self.image_num += 1
         feature = self.extract_feature(img, remove_background=False, debug_mode=False)
-        feature = feature.reshape(1, -1)[:, [1, 2]]
+        feature = feature.reshape(1, -1)[:, FEATURE_INDEX]
         if self.isCorrect:
             feature = feature / (self.correct_color+1e-4)
         pred_color = self.model.predict(feature)
@@ -345,15 +345,15 @@ class WoodClass(object):
 
 if __name__ == '__main__':
     # 初始化wood
-    wood = WoodClass(w=2048, h=12450, n=5000, debug_mode=False)
+    wood = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     print("色彩纯度控制量{}/{}".format(wood.k, wood.n))
     wood.correct()
     # wood.load()
     # fit 相应的文件夹
-    wood.fit_pictures(data_path=r"C:\Users\Administrator.DESKTOP-K75IPPC\Desktop\data1108")
+    wood.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color")
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
-    pic = cv2.imread(r"./data/dark/15.bmp")
+    pic = cv2.imread(r"./data/dark/rgb60.png")
     start_time = time.time()
     for i in range(100):
         wood_color = wood.predict(pic)
