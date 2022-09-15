@@ -18,8 +18,7 @@ def main():
         # receive data
         t1 = time.time()
         size_buff = socket_receive.recv(5)
-        if size_buff[4] == 0:
-
+        if (size_buff[4] == 0):
             n_rows, n_cols = size_buff[0] << 8 | size_buff[1], size_buff[2] << 8 | size_buff[3]
             data_size = n_rows * n_cols * 3
             print(data_size)
@@ -48,6 +47,15 @@ def main():
                 socket_send.send(b'Q')
                 print('Q send success')
             print((time.time()-t1))
+        elif (size_buff[4] == 1):
+            detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
+            detector.correct()
+            detector.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color")
+            socket_send.send(b'G')
+        elif (size_buff[4] == 2):
+            pass
+
+
 
 
 
