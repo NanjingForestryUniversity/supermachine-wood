@@ -17,35 +17,38 @@ def main():
     while True:
         # receive data
         t1 = time.time()
-        size_buff = socket_receive.recv(4)
-        n_rows, n_cols = size_buff[0] << 8 | size_buff[1], size_buff[2] << 8 | size_buff[3]
-        data_size = n_rows * n_cols * 3
-        print(data_size)
-        recv_size = data_size
-        buff_all, size = [], 0
-        while True:
-            data_buff = socket_receive.recv(recv_size)
-            recv_size -= len(data_buff)
-            buff_all += data_buff
-            if recv_size == 0:
-                break
-        print(len(buff_all))
-        raw_data = np.frombuffer(bytes(buff_all), dtype=np.uint8).reshape(int(n_rows), int(n_cols), -1)
-        print(raw_data.shape)
-        wood_color = detector.predict(raw_data)
-        # cv2.imshow("img", raw_data)
-        # cv2.waitKey(30)
-        # print('Class is ', wood_color)
-        if wood_color == 0:
-            socket_send.send(b'S')
-            print('S send success')
-        elif wood_color == 1:
-            socket_send.send(b'Z')
-            print('Z send success')
-        elif wood_color == 2:
-            socket_send.send(b'Q')
-            print('Q send success')
-        print((time.time()-t1))
+        size_buff = socket_receive.recv(5)
+        if size_buff[4] == 0:
+
+            n_rows, n_cols = size_buff[0] << 8 | size_buff[1], size_buff[2] << 8 | size_buff[3]
+            data_size = n_rows * n_cols * 3
+            print(data_size)
+            recv_size = data_size
+            buff_all, size = [], 0
+            while True:
+                data_buff = socket_receive.recv(recv_size)
+                recv_size -= len(data_buff)
+                buff_all += data_buff
+                if recv_size == 0:
+                    break
+            print(len(buff_all))
+            raw_data = np.frombuffer(bytes(buff_all), dtype=np.uint8).reshape(int(n_rows), int(n_cols), -1)
+            print(raw_data.shape)
+            wood_color = detector.predict(raw_data)
+            # cv2.imshow("img", raw_data)
+            # cv2.waitKey(30)
+            # print('Class is ', wood_color)
+            if wood_color == 0:
+                socket_send.send(b'S')
+                print('S send success')
+            elif wood_color == 1:
+                socket_send.send(b'Z')
+                print('Z send success')
+            elif wood_color == 2:
+                socket_send.send(b'Q')
+                print('Q send success')
+            print((time.time()-t1))
+
 
 
 if __name__ == '__main__':
