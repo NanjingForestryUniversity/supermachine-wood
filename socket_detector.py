@@ -59,6 +59,7 @@ def main():
             model_path = os.path.join("models", select_model)
             detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
             detector.load(path=model_path)
+            socket_send.send(b'C')
 
 
 
