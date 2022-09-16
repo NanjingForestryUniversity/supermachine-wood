@@ -215,7 +215,7 @@ def ack_sock(send_sock:PreSocket, cmd_type: str) -> bool:
     :param send_sock:指定sock
     :return:是否发送成功
     '''
-    msg = b'\xaa\x00\x00\x00\xd8'+(' A'+cmd_type).upper().encode('ascii')+b'\xff\xff\xff\xbb'
+    msg = b'\xaa\x00\x00\x00\xd5'+(' A'+cmd_type).upper().encode('ascii')+b'\xff\xff\xff\xbb'
     try:
         send_sock.send(msg)
     except Exception as e:
@@ -239,7 +239,7 @@ def done_sock(send_sock: PreSocket, cmd_type: str, result: str = '') -> bool:
         result = b'\xff'
     elif cmd_type == 'IM':
         result = result.encode('ascii')
-    msg = b'\xaa\x00\x00\x00\xd8'+(' D'+cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
+    msg = b'\xaa\x00\x00\x00\xd5'+(' D'+cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
     try:
         send_sock.send(msg)
     except Exception as e:
