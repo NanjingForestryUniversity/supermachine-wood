@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from classifer import WoodClass
 import time
+import os
 
 
 def main():
@@ -53,7 +54,12 @@ def main():
             detector.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color")
             socket_send.send(b'G')
         elif (size_buff[4] == 2):
-            pass
+            str_size = size_buff[0] << 8 | size_buff[1]
+            select_model = socket_receive.recv(str_size)
+            model_path = os.path.join("models", select_model)
+            detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
+            detector.load(path=model_path)
+            break
 
 
 
