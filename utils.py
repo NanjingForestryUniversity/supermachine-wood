@@ -10,7 +10,8 @@ import os
 import shutil
 import time
 import socket
-from classifer import WoodClass
+import numpy as np
+
 
 
 def mkdir_if_not_exist(dir_name, is_delete=False):
@@ -74,8 +75,8 @@ class PreSocket(socket.socket):
         self.pre_pack = b''
 
     def receive(self, *args, **kwargs):
-        if len(self.pre_pack) == 0:
-            self.recv(*args, **kwargs)
+        if self.pre_pack == b'':
+            return self.recv(*args, **kwargs)
         else:
             data_len = args[0]
             required, left = self.pre_pack[:data_len], self.pre_pack[data_len:]
@@ -83,30 +84,7 @@ class PreSocket(socket.socket):
             return required
 
     def set_prepack(self, pre_pack: bytes):
-        self.pre_pack += pre_pack
-
-
-def process_cmd(recv_sock: PreSocket, send_sock: PreSocket):
-    model_path = "models/model_2022-09-06_13-08.p"
-    detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
-    detector.load(path=model_path)
-    while True:
-        pack, next_pack = receive_sock(recv_sock)
-        recv_sock.set_prepack(next_pack)
-        cmd, data = parse_protocol(pack)
-        ack_sock(send_sock, cmd_type=cmd)
-        if cmd == 'IM':
-            wood_color = str(detector.predict(data))
-            done_sock(send_sock, cmd_type=cmd, result=wood_color)
-        elif cmd == 'TR':
-            detector.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color")
-            done_sock(send_sock, cmd_type=cmd)
-        elif cmd == 'MD':
-            model_path = os.path.join("models", data)
-            detector.load(path=model_path)
-            done_sock(send_sock, cmd_type=cmd)
-        else:
-            logging.error(f'错误指令，指令为{cmd}')
+        self.pre_pack = pre_pack
 
 
 def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
@@ -131,7 +109,7 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
         except Exception as e:
             logging.error(f'遇见未知错误，错误代码: \n{e}')
             return '', None
-        if temp == b'aa':
+        if temp == b'\xaa':
             break
 
     # 获取报文长度
@@ -224,7 +202,7 @@ def ack_sock(send_sock:PreSocket, cmd_type: str) -> bool:
     return True
 
 
-def done_sock(send_sock: PreSocket, cmd_type: str, result: str = '') -> bool:
+def done_sock(send_sock: PreSocket, cmd_type: str, result: int = '') -> bool:
     '''
     发送任务完成指令
     :param cmd_type:指令类型
@@ -238,7 +216,8 @@ def done_sock(send_sock: PreSocket, cmd_type: str, result: str = '') -> bool:
             logging.error('结果在这种指令里很没必要')
         result = b'\xff'
     elif cmd_type == 'IM':
-        result = result.encode('ascii')
+        result = result.to_bytes(1, "big")
+        print(result)
     msg = b'\xaa\x00\x00\x00\x05'+(' D'+cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
     try:
         send_sock.send(msg)

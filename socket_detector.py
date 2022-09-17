@@ -4,8 +4,32 @@ import cv2
 from classifer import WoodClass
 import time
 import os
-from utils import PreSocket, process_cmd
+from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock
+import logging
 
+
+def process_cmd(recv_sock: PreSocket, send_sock: PreSocket):
+    model_path = "models/model_2022-09-06_13-08.p"
+    detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
+    detector.load(path=model_path)
+    while True:
+        pack, next_pack = receive_sock(recv_sock)
+        recv_sock.set_prepack(next_pack)
+        cmd, data = parse_protocol(pack)
+        ack_sock(send_sock, cmd_type=cmd)
+        if cmd == 'IM':
+            wood_color = detector.predict(data)
+            done_sock(send_sock, cmd_type=cmd, result=wood_color)
+        elif cmd == 'TR':
+            detector.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color")
+            done_sock(send_sock, cmd_type=cmd)
+        elif cmd == 'MD':
+            model_path = os.path.join("models", data)
+            detector.load(path=model_path)
+            done_sock(send_sock, cmd_type=cmd)
+            print(model_path)
+        else:
+            logging.error(f'错误指令，指令为{cmd}')
 
 
 def main():
@@ -13,7 +37,7 @@ def main():
     socket_receive.connect(('127.0.0.1', 21122))
     socket_send = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
     socket_send.connect(('127.0.0.1', 21123))
-    process_cmd(recv_sock=socket_receive , send_sock=socket_send)
+    process_cmd(recv_sock=socket_receive, send_sock=socket_send)
 
 
 if __name__ == '__main__':
