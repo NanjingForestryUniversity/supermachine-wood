@@ -34,10 +34,10 @@ def process_cmd(recv_sock: PreSocket, send_sock: PreSocket):
 
 def main():
     socket_receive = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_receive.connect(('127.0.0.1', 21122))
-    socket_send = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_send.connect(('127.0.0.1', 21123))
-    process_cmd(recv_sock=socket_receive, send_sock=socket_send)
+    socket_receive.connect(('127.0.0.1', 23456))
+    # socket_send = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
+    # socket_send.connect(('127.0.0.1', 21123))
+    process_cmd(recv_sock=socket_receive, send_sock=socket_receive)
 
 
 if __name__ == '__main__':

@@ -295,7 +295,7 @@ class WoodClass(object):
         img_data = np.array(img_data)
         return img_data
 
-    def get_train_data(self, data_dir=None, plot_2d=True, plot_data_3d=False, save_data=False):
+    def get_train_data(self, data_dir=None, plot_2d=False, plot_data_3d=False, save_data=False):
         """
         获取图像数据
         :return: x_data, y_data
