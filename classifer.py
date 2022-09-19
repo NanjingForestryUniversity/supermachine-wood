@@ -307,10 +307,10 @@ class WoodClass(object):
         获取图像数据
         :return: x_data, y_data
         """
-        data_dir = ROOT_DIR if data_dir is None else data_dir
-        dark_data = self.get_image_data(img_dir=os.path.join(data_dir, "data", "dark"))
-        middle_data = self.get_image_data(img_dir=os.path.join(data_dir, "data", "middle"))
-        light_data = self.get_image_data(img_dir=os.path.join(data_dir, "data", "light"))
+        data_dir = os.path.join(ROOT_DIR, "data", "data20220919") if data_dir is None else data_dir
+        dark_data = self.get_image_data(img_dir=os.path.join(data_dir, "dark"))
+        middle_data = self.get_image_data(img_dir=os.path.join(data_dir, "middle"))
+        light_data = self.get_image_data(img_dir=os.path.join(data_dir, "light"))
         if (dark_data is False) or (middle_data is False) or (light_data is False):
             return False
         x_data = np.vstack((dark_data, middle_data, light_data))
@@ -354,17 +354,17 @@ if __name__ == '__main__':
     # 初始化wood
     wood = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     print("色彩纯度控制量{}/{}".format(wood.k, wood.n))
-    wood.correct()
+    # wood.correct()
     # wood.load()
     # fit 相应的文件夹
-    wood.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color")
+    wood.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919")
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
-    pic = cv2.imread(r"./data/dark/rgb60.png")
-    start_time = time.time()
-    for i in range(100):
-        wood_color = wood.predict(pic)
-    end_time = time.time()
-    print("time consume:"+str((end_time - start_time)/100))
-    print("wood_color:"+str(wood_color))
+    # pic = cv2.imread(r"./data/dark/rgb60.png")
+    # start_time = time.time()
+    # for i in range(100):
+    #     wood_color = wood.predict(pic)
+    # end_time = time.time()
+    # print("time consume:"+str((end_time - start_time)/100))
+    # print("wood_color:"+str(wood_color))
 

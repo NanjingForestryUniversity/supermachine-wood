@@ -91,7 +91,7 @@ def main():
     while True:
         cmd = input().strip().upper()
         if cmd == 'IM':
-            img = cv2.imread(r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\dark\rgb60.png")
+            img = cv2.imread(r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919\dark\rgb60.png")
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             width = img.shape[0]
             height = img.shape[1]
@@ -113,7 +113,11 @@ def main():
             else:
                 print('指令执行失败')
         elif cmd == 'TR':
-            send_message = b'\xaa\x00\x00\x00\x05' + ('  ' + cmd).upper().encode('ascii') + b'\xff\xff\xff\xbb'
+            model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/data/data20220919"
+            model = model.encode('ascii')
+            length = len(model) + 4
+            length = length.to_bytes(4, byteorder='big')
+            send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + model + b'\xff\xff\xbb'
             socket_send_1.send(send_message)
             print('发送成功')
             if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
@@ -125,7 +129,7 @@ def main():
             else:
                 print('指令执行失败')
         elif cmd == 'MD':
-            model = "model_2020-11-08_20-49.p"
+            model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
             model = model.encode('ascii')
             length = len(model) + 4
             length = length.to_bytes(4, byteorder='big')

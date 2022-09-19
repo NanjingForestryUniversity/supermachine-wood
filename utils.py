@@ -152,7 +152,7 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
         return b'', b''
 
 
-def parse_protocol(data: bytes) -> (str, any):
+def  parse_protocol(data: bytes) -> (str, any):
     '''
     指令转换.
 
@@ -181,7 +181,8 @@ def parse_protocol(data: bytes) -> (str, any):
         img = np.frombuffer(img, dtype=np.uint8).reshape((n_rows, n_cols, -1))
         return cmd, img
     elif cmd == 'TR':
-        return cmd, None
+        data = data.decode('ascii')
+        return cmd, data
     elif cmd == 'MD':
         data = data.decode('ascii')
         return cmd, data
