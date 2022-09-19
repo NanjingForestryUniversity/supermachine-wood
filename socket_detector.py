@@ -1,6 +1,10 @@
 import socket
+import sys
+
 import numpy as np
 import cv2
+
+import root_dir
 from classifer import WoodClass
 import time
 import os
@@ -60,7 +64,14 @@ def process_cmd(cmd: str, data: any, connected_sock: PreSocket, detector: WoodCl
     return response
 
 
-def main():
+def main(is_debug=False):
+    file_handler = logging.FileHandler(os.path.join(ROOT_DIR, 'report.log'))
+    file_handler.setLevel(logging.DEBUG if is_debug else logging.WARNING)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.DEBUG if is_debug else logging.WARNING)
+    logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] - %(levelname)s - %(message)s',
+                        handlers=[file_handler, console_handler], level=logging.DEBUG)
+
     status, connected_sock = False, None
     while not status:
         status, connected_sock = try_connect()
@@ -89,7 +100,7 @@ if __name__ == '__main__':
     # 发送端口21123
     # 接收到图片 n_rows * n_bands * n_cols, float32
     # 发送图片 n_rows * n_cols, uint8
-    main()
+    main(is_debug=False)
     # test(r"D:\build-tobacco-Desktop_Qt_5_9_0_MSVC2015_64bit-Release\calibrated15.raw")
     # main()
     # debug_main()

@@ -13,7 +13,6 @@ import socket
 import numpy as np
 
 
-
 def mkdir_if_not_exist(dir_name, is_delete=False):
     """
     创建文件夹
@@ -73,6 +72,7 @@ class PreSocket(socket.socket):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pre_pack = b''
+        self.settimeout(5)
 
     def receive(self, *args, **kwargs):
         if self.pre_pack == b'':
@@ -88,34 +88,47 @@ class PreSocket(socket.socket):
         self.pre_pack = temp + pre_pack
 
 
-def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
+def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = 120, time_out_single=0.5) -> (bytes, bytes):
     """
     从指定的socket中读取数据.
 
     :param recv_sock: 指定sock
     :param pre_pack: 上一包的粘包内容
+    :param time_out: 每隔time_out至少要发来一次指令,否则认为出现问题进行重连
+    :param time_out_single: 单次质指令超时时间，单位是秒
     :return: data, next_pack
     """
     recv_sock.set_prepack(pre_pack)
     # 开头校验
+    time_start_recv = time.time()
     while True:
+        if (time.time() - time_start_recv) > time_out:
+            logging.error(f'指令接收超时')
+            return b'', b''
         try:
             temp = recv_sock.receive(1)
         except ConnectionError as e:
             logging.error(f'连接出错, 错误代码:\n{e}')
             return b'', b''
         except TimeoutError as e:
-            logging.error(f'超时了，错误代码: \n{e}')
-            return b'', b''
+            # logging.error(f'超时了，错误代码: \n{e}')
+            logging.info('运行中,等待指令..')
+            continue
         except Exception as e:
             logging.error(f'遇见未知错误，错误代码: \n{e}')
             return b'', b''
         if temp == b'\xaa':
             break
 
+    # 接收开头后，开始进行时间记录
+    time_start_recv = time.time()
+
     # 获取报文长度
     temp = b''
     while len(temp) < 4:
+        if (time.time() - time_start_recv) > time_out_single:
+            logging.error(f'单次指令接收超时')
+            return b'', b''
         try:
             temp += recv_sock.receive(1)
         except Exception as e:
@@ -130,20 +143,28 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
     # 读取报文内容
     temp = b''
     while len(temp) < data_len:
+        if (time.time() - time_start_recv) > time_out_single:
+            logging.error(f'单次指令接收超时')
+            return b'', b''
         try:
             temp += recv_sock.receive(data_len)
         except Exception as e:
             logging.error(f'接收报文内容失败, 错误代码: \n{e}，\n报文内容\n{temp}')
             return b'', b''
     data, next_pack = temp[:data_len], temp[data_len:]
+    recv_sock.set_prepack(next_pack)
+    next_pack = b''
 
     # 进行数据校验
     temp = b''
     while len(temp) < 3:
+        if (time.time() - time_start_recv) > time_out_single:
+            logging.error(f'单次指令接收超时')
+            return b'', b''
         try:
             temp += recv_sock.receive(1)
         except Exception as e:
-            logging.error(f'接收报文校验失败, 错误代码: \n{e}')
+            logging.error(f'接收报文校验失败, 错误代码: \n{e}, 报文如下: \n{temp}')
             return b'', b''
     if temp == b'\xff\xff\xbb':
         return data, next_pack
@@ -152,13 +173,13 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
         return b'', b''
 
 
-def  parse_protocol(data: bytes) -> (str, any):
-    '''
+def parse_protocol(data: bytes) -> (str, any):
+    """
     指令转换.
 
     :param data:接收到的报文
     :return: 指令类型和内容
-    '''
+    """
     try:
         assert len(data) > 4
     except AssertionError:
@@ -219,7 +240,6 @@ def done_sock(send_sock: PreSocket, cmd_type: str, result: int = '') -> bool:
         result = b'\xff'
     elif cmd_type == 'IM':
         result = result.to_bytes(1, "big")
-        print(result)
     msg = b'\xaa\x00\x00\x00\x05'+(' D'+cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
     try:
         send_sock.send(msg)
