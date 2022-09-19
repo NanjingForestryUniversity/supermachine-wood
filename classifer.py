@@ -5,6 +5,7 @@ Created on Nov 3 21:18:26 2020
 @author: l.z.y
 @e-mail: li.zhenye@qq.com
 """
+import logging
 import sys
 import numpy as np
 import cv2
@@ -220,6 +221,12 @@ class WoodClass(object):
             latest_model = model_files[int(np.argmax(file_times))]
             self.log.log("└--Using the latest model: "+str(latest_model))
             path = os.path.join(ROOT_DIR, "models", str(latest_model))
+        if not os.path.isabs(path):
+            logging.warning('给的是相对路径')
+            return -1
+        if not os.path.exists(path):
+            logging.warning('文件不存在')
+            return -1
         with open(path, "rb") as f:
             model_dic = pickle.load(f)
         self.n, self.k, self.p1, self.pur = model_dic["n"], model_dic["k"], model_dic["p1"], model_dic["pur"]

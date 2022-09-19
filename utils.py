@@ -70,8 +70,8 @@ class Logger(object):
 
 
 class PreSocket(socket.socket):
-    def __int__(self, *args, **kwargs):
-        super(socket.socket, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.pre_pack = b''
 
     def receive(self, *args, **kwargs):
@@ -84,7 +84,8 @@ class PreSocket(socket.socket):
             return required
 
     def set_prepack(self, pre_pack: bytes):
-        self.pre_pack = pre_pack
+        temp = self.pre_pack
+        self.pre_pack = temp + pre_pack
 
 
 def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
@@ -102,13 +103,13 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
             temp = recv_sock.receive(1)
         except ConnectionError as e:
             logging.error(f'连接出错, 错误代码:\n{e}')
-            return '', None
+            return b'', b''
         except TimeoutError as e:
             logging.error(f'超时了，错误代码: \n{e}')
-            return '', None
+            return b'', b''
         except Exception as e:
             logging.error(f'遇见未知错误，错误代码: \n{e}')
-            return '', None
+            return b'', b''
         if temp == b'\xaa':
             break
 
@@ -118,7 +119,7 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'') -> (bytes, bytes):
         try:
             temp += recv_sock.receive(1)
         except Exception as e:
-            logging.error(f'接收报文长度失败, 错误代码: \n{e}')
+            logging.error(f'接收报文的长度不正确, 错误代码: \n{e}')
             return b'', b''
     try:
         data_len = int.from_bytes(temp, byteorder='big')
