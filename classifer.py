@@ -22,7 +22,7 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [0, 1, 2, 6, 7]
+FEATURE_INDEX = [0, 1, 2, 3, 4, 5]
 
 
 class WoodClass(object):
@@ -352,7 +352,7 @@ class WoodClass(object):
 
 if __name__ == '__main__':
     # 初始化wood
-    wood = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
+    wood = WoodClass(w=4096, h=1200, n=5000, p1=0.4, debug_mode=False)
     print("色彩纯度控制量{}/{}".format(wood.k, wood.n))
     # wood.correct()
     # wood.load()
