@@ -87,7 +87,6 @@ def main(is_debug=False):
         if pack == b"":
             status, connected_sock = try_connect()
             continue
-        connected_sock.set_prepack(next_pack)
 
         cmd, data = parse_protocol(pack)
         ack_sock(connected_sock, cmd_type=cmd)
