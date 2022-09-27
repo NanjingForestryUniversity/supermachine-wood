@@ -88,23 +88,24 @@ class PreSocket(socket.socket):
         self.pre_pack = temp + pre_pack
 
 
-def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = 120, time_out_single=0.5) -> (bytes, bytes):
+def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = -1.0, time_out_single=0.5) -> (bytes, bytes):
     """
     从指定的socket中读取数据.
 
     :param recv_sock: 指定sock
     :param pre_pack: 上一包的粘包内容
-    :param time_out: 每隔time_out至少要发来一次指令,否则认为出现问题进行重连
-    :param time_out_single: 单次质指令超时时间，单位是秒
+    :param time_out: 每隔time_out至少要发来一次指令,否则认为出现问题进行重连，小于0则为一直等
+    :param time_out_single: 单次指令超时时间，单位是秒
     :return: data, next_pack
     """
     recv_sock.set_prepack(pre_pack)
     # 开头校验
     time_start_recv = time.time()
     while True:
-        if (time.time() - time_start_recv) > time_out:
-            logging.error(f'指令接收超时')
-            return b'', b''
+        if time_out > 0:
+            if (time.time() - time_start_recv) > time_out:
+                logging.error(f'指令接收超时')
+                return b'', b''
         try:
             temp = recv_sock.receive(1)
         except ConnectionError as e:
