@@ -138,7 +138,7 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = 
     try:
         data_len = int.from_bytes(temp, byteorder='big')
     except Exception as e:
-        logging.error(f'转换失败,错误代码 \n{e}, \n报文内容\n{temp}')
+        logging.error(f'转换失败,错误代码 \n{e}')
         return b'', b''
 
     # 读取报文内容
@@ -170,7 +170,7 @@ def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = 
     if temp == b'\xff\xff\xbb':
         return data, next_pack
     else:
-        logging.error(f"接收了一个完美的只错了校验位的报文，\n data: {data} \n next_pack:{next_pack}")
+        logging.error(f"接收了一个完美的只错了校验位的报文")
         return b'', b''
 
 
@@ -196,7 +196,8 @@ def parse_protocol(data: bytes) -> (str, any):
             logging.error(f'长宽转换失败, 错误代码{e}, 报文内容: n_rows:{n_rows}, n_cols: {n_cols}')
             return '', None
         try:
-            assert n_rows * n_cols * 3 == len(img)
+            assert n_rows * n_cols * 12 == len(img)
+            # 因为是float32类型 所以长度要乘12 ，如果是uint8则乘3
         except AssertionError:
             logging.error('图像指令IM转换失败，数据长度错误')
             return '', None

@@ -79,7 +79,7 @@ def main(is_debug=False):
     # socket_send.connect(('127.0.0.1', 21123))
     # a = b'\xaa\x00\x00\x00\x05\x20\x44\x54\x52\xff\xff\xff\xbb'
     # connected_sock.send(a)
-    model_path = os.path.join(ROOT_DIR, "models/model_2022-09-06_13-08.p")
+    model_path = os.path.join(ROOT_DIR, r"C:\Users\FEIJINTI\PycharmProjects\wood_color\models\model_2022-09-28_13-15.p")
     detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     detector.load(path=model_path)
     while True:

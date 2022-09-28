@@ -93,15 +93,17 @@ def main():
         if cmd == 'IM':
             img = cv2.imread(r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919\dark\rgb60.png")
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = np.asarray(img, dtype=np.float32)
             width = img.shape[0]
             height = img.shape[1]
-            length = width * height * 3 + 4 + 4
+            img_bytes = img.tobytes()
+            length = len(img_bytes) + 8
             length = length.to_bytes(4, byteorder='big')
             width = width.to_bytes(2, byteorder='big')
             height = height.to_bytes(2, byteorder='big')
             send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + width + height
             socket_send_1.send(send_message)
-            socket_send_1.send(img)
+            socket_send_1.send(img_bytes)
             socket_send_1.send(b'\xff\xff\xbb')
             print('发送成功')
             if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
