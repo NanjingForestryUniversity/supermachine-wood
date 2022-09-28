@@ -200,7 +200,7 @@ def parse_protocol(data: bytes) -> (str, any):
         except AssertionError:
             logging.error('图像指令IM转换失败，数据长度错误')
             return '', None
-        img = np.frombuffer(img, dtype=np.uint8).reshape((n_rows, n_cols, -1))
+        img = np.frombuffer(img, dtype=np.float32).reshape((n_rows, n_cols, -1))
         return cmd, img
     elif cmd == 'TR':
         data = data.decode('ascii')
