@@ -14,8 +14,6 @@ from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock, 
 import logging
 
 
-
-
 def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: WoodClass) -> bool:
     """
     处理指令
