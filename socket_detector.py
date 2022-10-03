@@ -10,34 +10,13 @@ import time
 import os
 
 from root_dir import ROOT_DIR
-from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock
+from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock, DualSock, simple_sock
 import logging
 
 
-def try_connect(connect_ip: str, port_number: int, is_repeat: bool = False, max_reconnect_times: int = 50) -> (bool, socket.socket):
-    """
-    尝试连接.
-
-    :param is_repeat: 是否是重新连接
-    :param max_reconnect_times:最大重连次数
-    :return: (连接状态True为成功, Socket / None)
-    """
-    reconnect_time = 0
-    while reconnect_time < max_reconnect_times:
-        logging.warning(f'尝试{"重新" if is_repeat else ""}发起第{reconnect_time+1}次连接...')
-        try:
-            connected_sock = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
-            connected_sock.connect((connect_ip, port_number))
-        except Exception as e:
-            reconnect_time += 1
-            logging.error(f'第{reconnect_time}次连接失败\n {e}')
-            continue
-        logging.warning(f'{"重新" if is_repeat else ""}连接成功')
-        return True, connected_sock
-    return False, None
 
 
-def process_cmd(cmd: str, data: any, connected_sock: PreSocket, detector: WoodClass) -> bool:
+def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: WoodClass) -> bool:
     """
     处理指令
 
@@ -50,14 +29,14 @@ def process_cmd(cmd: str, data: any, connected_sock: PreSocket, detector: WoodCl
 
     if cmd == 'IM':
         wood_color = detector.predict(data)
-        response = done_sock(connected_sock, cmd_type=cmd, result=wood_color)
+        response = simple_sock(connected_sock, cmd_type=cmd, result=wood_color)
     elif cmd == 'TR':
         detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
         detector.fit_pictures(data_path=data)
-        response = done_sock(connected_sock, cmd_type=cmd)
+        response = simple_sock(connected_sock, cmd_type=cmd)
     elif cmd == 'MD':
         detector.load(path=data)
-        response = done_sock(connected_sock, cmd_type=cmd)
+        response = simple_sock(connected_sock, cmd_type=cmd)
     else:
         logging.error(f'错误指令，指令为{cmd}')
         response = False
@@ -71,29 +50,22 @@ def main(is_debug=False):
     console_handler.setLevel(logging.DEBUG if is_debug else logging.WARNING)
     logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] - %(levelname)s - %(message)s',
                         handlers=[file_handler, console_handler], level=logging.DEBUG)
+    dual_sock = DualSock()
 
-    received_status, received_sock = False, None
-    send_status, send_sock = False, None
-    while not (received_status or send_status):
-        received_status, received_sock = try_connect(connect_ip='127.0.0.1', port_number=21122)
-        send_status, send_sock = try_connect(connect_ip='127.0.0.1', port_number=21123)
-    # socket_send = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
-    # socket_send.connect(('127.0.0.1', 21123))
-    # a = b'\xaa\x00\x00\x00\x05\x20\x44\x54\x52\xff\xff\xff\xbb'
-    # received_sock.send(a)
+    while not dual_sock.status:
+        dual_sock.reconnect()
     model_path = os.path.join(ROOT_DIR, r"C:\Users\FEIJINTI\PycharmProjects\wood_color\models\model_2022-09-28_13-15.p")
     detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     detector.load(path=model_path)
     while True:
-        pack, next_pack = receive_sock(received_sock)
+        pack, next_pack = receive_sock(dual_sock)
         if pack == b"":
-            received_status, received_sock = try_connect(connect_ip='127.0.0.1', port_number=21122)
-            send_status, send_sock = try_connect(connect_ip='127.0.0.1', port_number=21123)
+            dual_sock.reconnect()
             continue
 
         cmd, data = parse_protocol(pack)
         # ack_sock(received_sock, cmd_type=cmd)
-        process_cmd(cmd=cmd, data=data, connected_sock=send_sock, detector=detector)
+        process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector)
 
 
 if __name__ == '__main__':

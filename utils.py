@@ -68,6 +68,30 @@ class Logger(object):
             print(content)
 
 
+def try_connect(connect_ip: str, port_number: int, is_repeat: bool = False, max_reconnect_times: int = 50) -> (
+                bool, socket.socket):
+    """
+    尝试连接.
+
+    :param is_repeat: 是否是重新连接
+    :param max_reconnect_times:最大重连次数
+    :return: (连接状态True为成功, Socket / None)
+    """
+    reconnect_time = 0
+    while reconnect_time < max_reconnect_times:
+        logging.warning(f'尝试{"重新" if is_repeat else ""}发起第{reconnect_time + 1}次连接...')
+        try:
+            connected_sock = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
+            connected_sock.connect((connect_ip, port_number))
+        except Exception as e:
+            reconnect_time += 1
+            logging.error(f'第{reconnect_time}次连接失败\n {e}')
+            continue
+        logging.warning(f'{"重新" if is_repeat else ""}连接成功')
+        return True, connected_sock
+    return False, None
+
+
 class PreSocket(socket.socket):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -88,7 +112,30 @@ class PreSocket(socket.socket):
         self.pre_pack = temp + pre_pack
 
 
-def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = -1.0, time_out_single=0.5) -> (bytes, bytes):
+class DualSock(PreSocket):
+    def __init__(self, connect_ip='127.0.0.1', recv_port:int = 21122, send_port: int = 21123):
+        super().__init__()
+        received_status, self.received_sock = try_connect(connect_ip=connect_ip, port_number=recv_port)
+        send_status, self.send_sock = try_connect(connect_ip=connect_ip, port_number=send_port)
+        self.status = received_status and send_status
+
+    def send(self, *args, **kwargs) -> int:
+        return self.send_sock.send(*args, **kwargs)
+
+    def receive(self, *args, **kwargs) -> bytes:
+        return self.received_sock.receive(*args, **kwargs)
+
+    def set_prepack(self, *args, **kwargs):
+        return self.received_sock.receive(*args, **kwargs)
+
+    def reconnect(self, connect_ip='127.0.0.1', recv_port:int = 21122, send_port: int = 21123):
+        received_status, self.received_sock = try_connect(connect_ip=connect_ip, port_number=recv_port)
+        send_status, self.send_sock = try_connect(connect_ip=connect_ip, port_number=send_port)
+        return received_status and send_status
+
+
+def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = -1.0, time_out_single=0.5) -> (
+bytes, bytes):
     """
     从指定的socket中读取数据.
 
@@ -211,14 +258,14 @@ def parse_protocol(data: bytes) -> (str, any):
         return cmd, data
 
 
-def ack_sock(send_sock:PreSocket, cmd_type: str) -> bool:
+def ack_sock(send_sock: socket.socket, cmd_type: str) -> bool:
     '''
     发送应答
     :param cmd_type:指令类型
     :param send_sock:指定sock
     :return:是否发送成功
     '''
-    msg = b'\xaa\x00\x00\x00\x05'+(' A'+cmd_type).upper().encode('ascii')+b'\xff\xff\xff\xbb'
+    msg = b'\xaa\x00\x00\x00\x05' + (' A' + cmd_type).upper().encode('ascii') + b'\xff\xff\xff\xbb'
     try:
         send_sock.send(msg)
     except Exception as e:
@@ -227,7 +274,7 @@ def ack_sock(send_sock:PreSocket, cmd_type: str) -> bool:
     return True
 
 
-def done_sock(send_sock: PreSocket, cmd_type: str, result: int = '') -> bool:
+def done_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bool:
     '''
     发送任务完成指令
     :param cmd_type:指令类型
@@ -242,7 +289,7 @@ def done_sock(send_sock: PreSocket, cmd_type: str, result: int = '') -> bool:
         result = b'\xff'
     elif cmd_type == 'IM':
         result = result.to_bytes(1, "big")
-    msg = b'\xaa\x00\x00\x00\x05'+(' D'+cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
+    msg = b'\xaa\x00\x00\x00\x05' + (' D' + cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
     try:
         send_sock.send(msg)
     except Exception as e:
@@ -251,9 +298,40 @@ def done_sock(send_sock: PreSocket, cmd_type: str, result: int = '') -> bool:
     return True
 
 
+def simple_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bool:
+    '''
+    发送任务完成指令
+    :param cmd_type:指令类型
+    :param send_sock:指定sock
+    :param result:数据
+    :return:是否发送成功
+    '''
+    cmd_type = cmd_type.strip().upper()
+    if cmd_type == 'IM':
+        if result == 0:
+            msg = b'Q'
+        elif result == 1:
+            msg = b'Z'
+        elif result == 2:
+            msg = b'S'
+    elif cmd_type == 'TR':
+        msg = b'A'
+    elif cmd_type == 'MD':
+        msg = b'D'
+    try:
+        send_sock.send(msg)
+    except Exception as e:
+        logging.error(f'发送完成指令失败，错误类型：{e}')
+        return False
+    return True
+
+
+
+
 if __name__ == '__main__':
     log = Logger(is_to_file=True)
     log.log("nihao")
     import numpy as np
+
     a = np.ones((100, 100, 3))
     log.log(a.shape)
