@@ -14,7 +14,7 @@ from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock
 import logging
 
 
-def try_connect(is_repeat: bool = False, max_reconnect_times: int = 50) -> (bool, socket.socket):
+def try_connect(connect_ip: str, port_number: int, is_repeat: bool = False, max_reconnect_times: int = 50) -> (bool, socket.socket):
     """
     尝试连接.
 
@@ -27,7 +27,7 @@ def try_connect(is_repeat: bool = False, max_reconnect_times: int = 50) -> (bool
         logging.warning(f'尝试{"重新" if is_repeat else ""}发起第{reconnect_time+1}次连接...')
         try:
             connected_sock = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
-            connected_sock.connect(('127.0.0.1', 23456))
+            connected_sock.connect((connect_ip, port_number))
         except Exception as e:
             reconnect_time += 1
             logging.error(f'第{reconnect_time}次连接失败\n {e}')
@@ -72,25 +72,28 @@ def main(is_debug=False):
     logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] - %(levelname)s - %(message)s',
                         handlers=[file_handler, console_handler], level=logging.DEBUG)
 
-    status, connected_sock = False, None
-    while not status:
-        status, connected_sock = try_connect()
+    received_status, received_sock = False, None
+    send_status, send_sock = False, None
+    while not (received_status or send_status):
+        received_status, received_sock = try_connect(connect_ip='127.0.0.1', port_number=21122)
+        send_status, send_sock = try_connect(connect_ip='127.0.0.1', port_number=21123)
     # socket_send = PreSocket(socket.AF_INET, socket.SOCK_STREAM)
     # socket_send.connect(('127.0.0.1', 21123))
     # a = b'\xaa\x00\x00\x00\x05\x20\x44\x54\x52\xff\xff\xff\xbb'
-    # connected_sock.send(a)
+    # received_sock.send(a)
     model_path = os.path.join(ROOT_DIR, r"C:\Users\FEIJINTI\PycharmProjects\wood_color\models\model_2022-09-28_13-15.p")
     detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     detector.load(path=model_path)
     while True:
-        pack, next_pack = receive_sock(connected_sock)
+        pack, next_pack = receive_sock(received_sock)
         if pack == b"":
-            status, connected_sock = try_connect()
+            received_status, received_sock = try_connect(connect_ip='127.0.0.1', port_number=21122)
+            send_status, send_sock = try_connect(connect_ip='127.0.0.1', port_number=21123)
             continue
 
         cmd, data = parse_protocol(pack)
-        ack_sock(connected_sock, cmd_type=cmd)
-        process_cmd(cmd=cmd, data=data, connected_sock=connected_sock, detector=detector)
+        # ack_sock(received_sock, cmd_type=cmd)
+        process_cmd(cmd=cmd, data=data, connected_sock=send_sock, detector=detector)
 
 
 if __name__ == '__main__':
