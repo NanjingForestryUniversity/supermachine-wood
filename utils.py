@@ -113,7 +113,7 @@ class PreSocket(socket.socket):
 
 
 class DualSock(PreSocket):
-    def __init__(self, connect_ip='127.0.0.1', recv_port:int = 21122, send_port: int = 21123):
+    def __init__(self, connect_ip='127.0.0.1', recv_port: int = 21122, send_port: int = 21123):
         super().__init__()
         received_status, self.received_sock = try_connect(connect_ip=connect_ip, port_number=recv_port)
         send_status, self.send_sock = try_connect(connect_ip=connect_ip, port_number=send_port)
@@ -125,8 +125,9 @@ class DualSock(PreSocket):
     def receive(self, *args, **kwargs) -> bytes:
         return self.received_sock.receive(*args, **kwargs)
 
-    def set_prepack(self, *args, **kwargs):
-        return self.received_sock.receive(*args, **kwargs)
+    # def set_prepack(self, pre_pack: bytes):
+    #     temp = self.pre_pack
+    #     self.pre_pack = temp + pre_pack
 
     def reconnect(self, connect_ip='127.0.0.1', recv_port:int = 21122, send_port: int = 21123):
         received_status, self.received_sock = try_connect(connect_ip=connect_ip, port_number=recv_port)

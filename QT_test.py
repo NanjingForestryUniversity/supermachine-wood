@@ -7,7 +7,7 @@ import logging
 import socket
 import numpy as np
 import cv2
-import binascii
+
 
 
 def rec_socket(recv_sock: socket.socket, cmd_type: str, ack: bool) -> bool:
@@ -77,20 +77,21 @@ def rec_socket(recv_sock: socket.socket, cmd_type: str, ack: bool) -> bool:
 
 def main():
     socket_receive = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_receive.bind(('127.0.0.1', 23456))
+    socket_receive.bind(('127.0.0.1', 21123))
     socket_receive.listen(5)
-    # socket_send = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # socket_send.bind(('127.0.0.1', 21122))
-    # socket_send.listen(5)
+    socket_send = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_send.bind(('127.0.0.1', 21122))
+    socket_send.listen(5)
     print('等待连接')
-    socket_send_1, receive_addr_1 = socket_receive.accept()
+    socket_send_1, receive_addr_1 = socket_send.accept()
     print("连接成功：", receive_addr_1)
-    socket_send_2 = socket_send_1
-    # socket_send_2, receive_addr_2 = socket_receive.accept()
-    # print("连接成功：", receive_addr_2)
+    # socket_send_2 = socket_send_1
+    socket_send_2, receive_addr_2 = socket_receive.accept()
+    print("连接成功：", receive_addr_2)
     while True:
         cmd = input().strip().upper()
         if cmd == 'IM':
+            # img = cv2.imread(r"/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919/dark/rgb60.png")
             img = cv2.imread(r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919\dark\rgb60.png")
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = np.asarray(img, dtype=np.float32)
@@ -101,20 +102,21 @@ def main():
             length = length.to_bytes(4, byteorder='big')
             width = width.to_bytes(2, byteorder='big')
             height = height.to_bytes(2, byteorder='big')
-            send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + width + height
+            send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + width + height + img_bytes + b'\xff\xff\xbb'
             socket_send_1.send(send_message)
-            socket_send_1.send(img_bytes)
-            socket_send_1.send(b'\xff\xff\xbb')
             print('发送成功')
-            if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
-                print('接收指令成功')
-            else:
-                print('接收指令失败')
-            if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
-                print('指令执行完毕')
-            else:
-                print('指令执行失败')
+            result = socket_send_2.recv(1)
+            print(result)
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
+            #     print('接收指令成功')
+            # else:
+            #     print('接收指令失败')
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
+            #     print('指令执行完毕')
+            # else:
+            #     print('指令执行失败')
         elif cmd == 'TR':
+            # model = "/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919"
             model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/data/data20220919"
             model = model.encode('ascii')
             length = len(model) + 4
@@ -122,15 +124,18 @@ def main():
             send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + model + b'\xff\xff\xbb'
             socket_send_1.send(send_message)
             print('发送成功')
-            if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
-                print('接收指令成功')
-            else:
-                print('接收指令失败')
-            if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
-                print('指令执行完毕')
-            else:
-                print('指令执行失败')
+            result = socket_send_2.recv(1)
+            print(result)
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
+            #     print('接收指令成功')
+            # else:
+            #     print('接收指令失败')
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
+            #     print('指令执行完毕')
+            # else:
+            #     print('指令执行失败')
         elif cmd == 'MD':
+            # model = "/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
             model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
             model = model.encode('ascii')
             length = len(model) + 4
@@ -138,14 +143,16 @@ def main():
             send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + model + b'\xff\xff\xbb'
             socket_send_1.send(send_message)
             print('发送成功')
-            if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
-                print('接收指令成功')
-            else:
-                print('接收指令失败')
-            if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
-                print('指令执行完毕')
-            else:
-                print('指令执行失败')
+            result = socket_send_2.recv(1)
+            print(result)
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
+            #     print('接收指令成功')
+            # else:
+            #     print('接收指令失败')
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
+            #     print('指令执行完毕')
+            # else:
+            #     print('指令执行失败')
         else:
             print('指令错误')
 
