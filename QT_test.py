@@ -77,9 +77,11 @@ def rec_socket(recv_sock: socket.socket, cmd_type: str, ack: bool) -> bool:
 
 def main():
     socket_receive = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_receive.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_receive.bind(('127.0.0.1', 21123))
     socket_receive.listen(5)
     socket_send = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_send.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_send.bind(('127.0.0.1', 21122))
     socket_send.listen(5)
     print('等待连接')
