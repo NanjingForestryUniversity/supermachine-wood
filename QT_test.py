@@ -77,9 +77,11 @@ def rec_socket(recv_sock: socket.socket, cmd_type: str, ack: bool) -> bool:
 
 def main():
     socket_receive = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_receive.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_receive.bind(('127.0.0.1', 21123))
     socket_receive.listen(5)
     socket_send = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_send.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_send.bind(('127.0.0.1', 21122))
     socket_send.listen(5)
     print('等待连接')
@@ -91,8 +93,8 @@ def main():
     while True:
         cmd = input().strip().upper()
         if cmd == 'IM':
-            # img = cv2.imread(r"/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919/dark/rgb60.png")
-            img = cv2.imread(r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919\dark\rgb60.png")
+            img = cv2.imread(r"/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919/dark/rgb60.png")
+            # img = cv2.imread(r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919\dark\rgb60.png")
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = np.asarray(img, dtype=np.float32)
             width = img.shape[0]
@@ -116,8 +118,8 @@ def main():
             # else:
             #     print('指令执行失败')
         elif cmd == 'TR':
-            # model = "/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919"
-            model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/data/data20220919"
+            model = "/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919"
+            # model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/data/data20220919"
             model = model.encode('ascii')
             length = len(model) + 4
             length = length.to_bytes(4, byteorder='big')
@@ -135,8 +137,8 @@ def main():
             # else:
             #     print('指令执行失败')
         elif cmd == 'MD':
-            # model = "/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
-            model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
+            model = "/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
+            # model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
             model = model.encode('ascii')
             length = len(model) + 4
             length = length.to_bytes(4, byteorder='big')

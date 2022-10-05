@@ -52,13 +52,14 @@ def main(is_debug=False):
 
     while not dual_sock.status:
         dual_sock.reconnect()
-    # model_path = os.path.join(ROOT_DIR, r"/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/models/model_2022-09-28_13-15.p")
-    model_path = os.path.join(ROOT_DIR, r"C:\Users\FEIJINTI\PycharmProjects\wood_color\models\model_2022-09-28_13-15.p")
+    model_path = os.path.join(ROOT_DIR, r"models/model_2022-09-28_13-15.p")
+    # model_path = os.path.join(ROOT_DIR, r"models\model_2022-09-28_13-15.p")
     detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     detector.load(path=model_path)
     while True:
         pack, next_pack = receive_sock(dual_sock)
         if pack == b"":
+            time.sleep(5)
             dual_sock.reconnect()
             continue
 

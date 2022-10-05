@@ -85,7 +85,8 @@ def try_connect(connect_ip: str, port_number: int, is_repeat: bool = False, max_
             connected_sock.connect((connect_ip, port_number))
         except Exception as e:
             reconnect_time += 1
-            logging.error(f'第{reconnect_time}次连接失败\n {e}')
+            logging.error(f'第{reconnect_time}次连接失败... 5秒后重新连接...\n {e}')
+            time.sleep(5)
             continue
         logging.warning(f'{"重新" if is_repeat else ""}连接成功')
         return True, connected_sock
@@ -125,9 +126,8 @@ class DualSock(PreSocket):
     def receive(self, *args, **kwargs) -> bytes:
         return self.received_sock.receive(*args, **kwargs)
 
-    # def set_prepack(self, pre_pack: bytes):
-    #     temp = self.pre_pack
-    #     self.pre_pack = temp + pre_pack
+    def set_prepack(self, pre_pack: bytes):
+        self.received_sock.set_prepack(pre_pack)
 
     def reconnect(self, connect_ip='127.0.0.1', recv_port:int = 21122, send_port: int = 21123):
         received_status, self.received_sock = try_connect(connect_ip=connect_ip, port_number=recv_port)
@@ -135,7 +135,7 @@ class DualSock(PreSocket):
         return received_status and send_status
 
 
-def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = -1.0, time_out_single=0.5) -> (
+def receive_sock(recv_sock: PreSocket, pre_pack: bytes = b'', time_out: float = -1.0, time_out_single=5e20) -> (
 bytes, bytes):
     """
     从指定的socket中读取数据.
@@ -161,6 +161,9 @@ bytes, bytes):
             return b'', b''
         except TimeoutError as e:
             # logging.error(f'超时了，错误代码: \n{e}')
+            logging.info('运行中,等待指令..')
+            continue
+        except socket.timeout as e:
             logging.info('运行中,等待指令..')
             continue
         except Exception as e:
