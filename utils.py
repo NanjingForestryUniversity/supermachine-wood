@@ -201,7 +201,7 @@ bytes, bytes):
         try:
             temp += recv_sock.receive(data_len)
         except Exception as e:
-            logging.error(f'接收报文内容失败, 错误代码: \n{e}，\n报文内容\n{temp}')
+            logging.error(f'接收报文内容失败, 错误代码: \n{e}')
             return b'', b''
     data, next_pack = temp[:data_len], temp[data_len:]
     recv_sock.set_prepack(next_pack)
@@ -216,7 +216,7 @@ bytes, bytes):
         try:
             temp += recv_sock.receive(1)
         except Exception as e:
-            logging.error(f'接收报文校验失败, 错误代码: \n{e}, 报文如下: \n{temp}')
+            logging.error(f'接收报文校验失败, 错误代码: \n{e}')
             return b'', b''
     if temp == b'\xff\xff\xbb':
         return data, next_pack
@@ -244,15 +244,15 @@ def parse_protocol(data: bytes) -> (str, any):
         try:
             n_rows, n_cols = [int.from_bytes(x, byteorder='big') for x in [n_rows, n_cols]]
         except Exception as e:
-            logging.error(f'长宽转换失败, 错误代码{e}, 报文内容: n_rows:{n_rows}, n_cols: {n_cols}')
+            logging.error(f'长宽转换失败, 错误代码{e}, 报文大小: n_rows:{n_rows}, n_cols: {n_cols}')
             return '', None
         try:
-            assert n_rows * n_cols * 12 == len(img)
+            assert n_rows * n_cols * 3 == len(img)
             # 因为是float32类型 所以长度要乘12 ，如果是uint8则乘3
         except AssertionError:
             logging.error('图像指令IM转换失败，数据长度错误')
             return '', None
-        img = np.frombuffer(img, dtype=np.float32).reshape((n_rows, n_cols, -1))
+        img = np.frombuffer(img, dtype=np.uint8).reshape((n_rows, n_cols, -1))
         return cmd, img
     elif cmd == 'TR':
         data = data.decode('ascii')
@@ -313,11 +313,11 @@ def simple_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bo
     cmd_type = cmd_type.strip().upper()
     if cmd_type == 'IM':
         if result == 0:
-            msg = b'Q'
+            msg = b'S'
         elif result == 1:
             msg = b'Z'
         elif result == 2:
-            msg = b'S'
+            msg = b'Q'
     elif cmd_type == 'TR':
         msg = b'A'
     elif cmd_type == 'MD':

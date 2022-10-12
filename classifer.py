@@ -13,6 +13,7 @@ from sklearn.cluster import KMeans
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
 from scipy.stats import binom
 import matplotlib.pyplot as plt
 import time
@@ -22,7 +23,7 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [0, 1, 2, 3, 4, 5]
+FEATURE_INDEX = [1, 2]
 
 
 class WoodClass(object):

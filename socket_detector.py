@@ -48,7 +48,7 @@ def main(is_debug=False):
     console_handler.setLevel(logging.DEBUG if is_debug else logging.WARNING)
     logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] - %(levelname)s - %(message)s',
                         handlers=[file_handler, console_handler], level=logging.DEBUG)
-    dual_sock = DualSock(connect_ip='192.168.2.221')
+    dual_sock = DualSock(connect_ip='127.0.0.1')
 
     while not dual_sock.status:
         dual_sock.reconnect()
@@ -56,6 +56,7 @@ def main(is_debug=False):
     # model_path = os.path.join(ROOT_DIR, r"models\model_2022-09-28_13-15.p")
     detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
     detector.load(path=model_path)
+    _ = detector.predict(np.random.randint(1, 254, (1200, 4096, 3), dtype=np.uint8))
     while True:
         pack, next_pack = receive_sock(dual_sock)
         if pack == b"":
