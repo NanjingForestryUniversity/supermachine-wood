@@ -12,9 +12,10 @@ import os
 from root_dir import ROOT_DIR
 from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock, DualSock, simple_sock
 import logging
+from config import Config
 
 
-def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: WoodClass) -> bool:
+def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: WoodClass, settings: Config) -> bool:
     """
     处理指令
 
@@ -30,10 +31,12 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
         response = simple_sock(connected_sock, cmd_type=cmd, result=wood_color)
     elif cmd == 'TR':
         detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
-        detector.fit_pictures(data_path=data)
+        settings.data_path = data
+        settings.model_path = ROOT_DIR / 'models' / detector.fit_pictures(data_path=settings.data_path)
         response = simple_sock(connected_sock, cmd_type=cmd)
     elif cmd == 'MD':
-        detector.load(path=data)
+        settings.model_path = data
+        detector.load(path=settings.model_path)
         response = simple_sock(connected_sock, cmd_type=cmd)
     else:
         logging.error(f'错误指令，指令为{cmd}')
@@ -42,6 +45,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
 
 
 def main(is_debug=False):
+    settings = Config()
     file_handler = logging.FileHandler(os.path.join(ROOT_DIR, 'report.log'))
     file_handler.setLevel(logging.DEBUG if is_debug else logging.WARNING)
     console_handler = logging.StreamHandler(sys.stdout)
@@ -52,10 +56,8 @@ def main(is_debug=False):
 
     while not dual_sock.status:
         dual_sock.reconnect()
-    model_path = os.path.join(ROOT_DIR, r"models/model_2022-09-28_13-15.p")
-    # model_path = os.path.join(ROOT_DIR, r"models\model_2022-09-28_13-15.p")
     detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
-    detector.load(path=model_path)
+    detector.load(path=settings.model_path)
     _ = detector.predict(np.random.randint(1, 254, (1200, 4096, 3), dtype=np.uint8))
     while True:
         pack, next_pack = receive_sock(dual_sock)
@@ -66,7 +68,7 @@ def main(is_debug=False):
 
         cmd, data = parse_protocol(pack)
         # ack_sock(received_sock, cmd_type=cmd)
-        process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector)
+        process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector, settings=settings)
 
 
 if __name__ == '__main__':

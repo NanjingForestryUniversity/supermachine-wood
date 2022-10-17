@@ -5,7 +5,7 @@ Created on Nov 3 21:18:26 2020
 @author: l.z.y
 @e-mail: li.zhenye@qq.com
 """
-import os
+import pathlib
 
-# ROOT_DIR = r"C:\Users\FEIJINTI\PycharmProjects\wood_color"
-ROOT_DIR = r"/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color"
+file_path = pathlib.Path(__file__)
+ROOT_DIR = file_path.parent

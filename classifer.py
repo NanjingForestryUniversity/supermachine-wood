@@ -19,6 +19,9 @@ import matplotlib.pyplot as plt
 import time
 import pickle
 import os
+
+import config
+
 sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
@@ -99,13 +102,14 @@ class WoodClass(object):
         :return:
         """
         # 训练数据文件位置
-        result = self.get_train_data(data_path)
+        result = self.get_train_data(data_path, plot_2d=False)
         if result is False:
             return 0
         x, y = result
         score = self.fit(x, y)
-        self.save()
-        return score
+        print('model score', score)
+        model_name = self.save()
+        return model_name
 
     def fit(self, x,  y, test_size=0.1):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=0)
@@ -207,6 +211,7 @@ class WoodClass(object):
         with open(file_name, "wb") as f:
             pickle.dump(model_dic, f)
         self.log.log("Save file to '" + str(file_name) + "'")
+        return file_name
 
     def load(self, path=None):
         if path is None:
@@ -352,13 +357,16 @@ class WoodClass(object):
 
 
 if __name__ == '__main__':
+    from config import Config
+    settings = Config()
     # 初始化wood
     wood = WoodClass(w=4096, h=1200, n=5000, p1=0.4, debug_mode=False)
     print("色彩纯度控制量{}/{}".format(wood.k, wood.n))
+    data_path = r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data1015"
     # wood.correct()
     # wood.load()
     # fit 相应的文件夹
-    wood.fit_pictures(data_path=r"C:\Users\FEIJINTI\PycharmProjects\wood_color\data\data20220919")
+    settings.model_path = ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path)
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
     # pic = cv2.imread(r"./data/dark/rgb60.png")
