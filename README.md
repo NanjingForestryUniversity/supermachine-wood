@@ -46,3 +46,59 @@
 
 ![测试结果](./pics/result.png)
 
+## 开机自启动
+
+启动文件 xxx.bat 放在路径
+```bash
+C:\Users\你的用户名\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+```
+示例如下
+```bash
+@echo off
+if "%1" == "h" goto begin
+mshta vbscript:createobject("wscript.shell").run("""%~0"" h",0)(window.close)&&exit
+:begin
+
+call C:\Users\FEIJINTI\miniconda3\Scripts\activate.bat C:\Users\FEIJINTI\miniconda3
+call conda activate cv
+cd C:\Users\FEIJINTI\OneDrive - macrosolid\PycharmProjects\start_test
+python 1.py
+pause
+```
+其中第一段是为了不显示cmd窗口
+
+第二段根据需求修改环境名以及启动程序
+
+## 代码加密
+
+安装
+```bash
+pip install jmpy3
+
+```
+
+```bash
+# -*- coding: utf-8 -*-
+"""
+py文件加密为so或pyd
+python代码 加密|加固
+参数说明：
+    -i | --input_file_path    待加密文件或文件夹路径，可是相对路径或绝对路径
+    -o | --output_file_path   加密后的文件输出路径，默认在input_file_path下创建dist文件夹，存放加密后的文件
+    -I | --ignore_files       不需要加密的文件或文件夹，逗号分隔
+    -m | --except_main_file   不加密包含__main__的文件(主文件加密后无法启动), 值为0、1。 默认为1
+
+报错：
+    AttributeError: 'str' object has no attribute 'decode'
+    找到报错文件：_msvccompiler.py
+    参考：https://blog.csdn.net/qq_43192819/article/details/108981008
+    128行代码修改为：.encode().decode('utf-16le', errors='replace')
+"""
+
+from jmpy.encrypt_py import start_encrypt
+# 需要加密的py文件
+input_file_path = "test.py"
+# 直接运行
+start_encrypt(input_file_path=input_file_path, output_file_path=None, ignore_files=None, except_main_file=0)
+
+```
