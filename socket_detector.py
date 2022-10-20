@@ -71,6 +71,7 @@ def main(is_debug=False):
         process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector, settings=settings)
 
 
+
 if __name__ == '__main__':
     # 2个端口
     # 接受端口21122

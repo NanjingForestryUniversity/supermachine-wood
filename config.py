@@ -20,8 +20,10 @@ class Config(object):
         else:
             self.model_path = str(ROOT_DIR / 'models/model_2022-10-17_11-10.p')
             self.data_path = str(ROOT_DIR / 'data/data20220919')
+            self.database_addr = str("mysql+pymysql://root:@localhost:3306/orm_test")  # 测试用数据库地址
             self._param_dict['model_path'] = self.model_path
             self._param_dict['data_path'] = self.data_path
+            self._param_dict['database_addr'] = self.database_addr
 
     def __setitem__(self, key, value):
         if key in self._param_dict:
@@ -45,6 +47,7 @@ class Config(object):
             self._param_dict = json.load(f)
             self.data_path = self._param_dict['data_path']
             self.model_path = self._param_dict['model_path']
+            self.database_addr = self._param_dict['database_addr']
 
     def _write(self):
         with open(Config.model_path, 'w') as f:
