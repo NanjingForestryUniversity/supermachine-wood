@@ -57,7 +57,7 @@ class Database(object):
 if __name__ == '__main__':
     test_addr = "mysql+pymysql://root:@localhost:3306/color"
     database = Database(test_addr)
-    database.init_db()
+    # database.init_db()
     t1 = time.time()
     for i in range(100):
         database.add_data('middle')

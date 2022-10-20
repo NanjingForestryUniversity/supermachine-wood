@@ -9,13 +9,14 @@ from classifer import WoodClass
 import time
 import os
 
+from database import Database
 from root_dir import ROOT_DIR
 from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock, DualSock, simple_sock
 import logging
 from config import Config
 
 
-def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: WoodClass, settings: Config) -> bool:
+def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: WoodClass, settings: Config) -> tuple:
     """
     处理指令
 
@@ -25,9 +26,10 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
     :param detector: 模型
     :return: 是否处理成功
     """
-
+    result = ''
     if cmd == 'IM':
         wood_color = detector.predict(data)
+        result = {0: 'dark', 1: 'middle', 2: 'light'}[wood_color]
         response = simple_sock(connected_sock, cmd_type=cmd, result=wood_color)
     elif cmd == 'TR':
         detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
@@ -41,7 +43,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
     else:
         logging.error(f'错误指令，指令为{cmd}')
         response = False
-    return response
+    return response, result
 
 
 def main(is_debug=False):
@@ -53,6 +55,9 @@ def main(is_debug=False):
     logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] - %(levelname)s - %(message)s',
                         handlers=[file_handler, console_handler], level=logging.DEBUG)
     dual_sock = DualSock(connect_ip='127.0.0.1')
+
+    database = Database(settings.database_addr)
+
 
     while not dual_sock.status:
         dual_sock.reconnect()
@@ -68,7 +73,10 @@ def main(is_debug=False):
 
         cmd, data = parse_protocol(pack)
         # ack_sock(received_sock, cmd_type=cmd)
-        process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector, settings=settings)
+        response, result = process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector, settings=settings)
+
+        if result != "":
+            database.add_data(result)
 
 
 
