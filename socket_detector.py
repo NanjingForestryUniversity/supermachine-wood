@@ -35,7 +35,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
         detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
         model_name = None
         if "/n" in data:
-            data, model_name = data.split("/n", 1)
+            data, model_name = data.split(":", 1)
             model_name = model_name + ".p"
         settings.data_path = data
         settings.model_path = ROOT_DIR / 'models' / detector.fit_pictures(data_path=settings.data_path, file_name=model_name)
