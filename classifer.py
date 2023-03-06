@@ -97,7 +97,7 @@ class WoodClass(object):
             sample = cv2.resize(x, (self.ww, self.hh))
         return sample
 
-    def fit_pictures(self, data_path=ROOT_DIR):
+    def fit_pictures(self, data_path=ROOT_DIR, file_name=None):
         """
         根据给出的data_path 进行 fit.如果没有给出data目录，那么将会使用当前文件夹
         :param data_path:
@@ -110,7 +110,7 @@ class WoodClass(object):
         x, y = result
         score = self.fit(x, y)
         print('model score', score)
-        model_name = self.save()
+        model_name = self.save(file_name)
         return model_name
 
     def fit(self, x,  y, test_size=0.1):
