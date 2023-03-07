@@ -7,6 +7,8 @@ Created on Nov 3 21:18:26 2020
 """
 import logging
 import sys
+from typing import Optional
+
 import numpy as np
 import cv2
 from sklearn.cluster import KMeans
@@ -28,7 +30,7 @@ from root_dir import ROOT_DIR
 import utils
 
 FEATURE_INDEX = [0, 1]
-
+delete_columns = 10        # 已弃用
 
 class WoodClass(object):
     def __init__(self, load_from=None, w=2048, h=12450, n=5000, p1=0.3, pur=0.99999, single_pick_mode=False,
@@ -145,6 +147,7 @@ class WoodClass(object):
         :param img: 输入图像
         :return: 分类值
         """
+        img = self.realtime_correct(img, 10, 20)
         if self.debug_mode:
             cv2.imwrite(str(self.image_num) + ".bmp", img)
             self.image_num += 1
@@ -308,6 +311,7 @@ class WoodClass(object):
             if self.debug_mode:
                 self.log.log(path)
             train_img = cv2.imread(path)
+            train_img = self.realtime_correct(train_img, 10, 20)
             data = self.extract_feature(train_img)
             img_data.append(data)
         img_data = np.array(img_data)
@@ -359,6 +363,42 @@ class WoodClass(object):
             with open(os.path.join("data", "data.p"), "rb") as f:
                 pass
         return x_data, y_data
+
+
+    def realtime_correction(self, img):
+        """
+        实时校正
+        :param img:
+        :return:
+        """
+        # 按照第一列的标准进行矫正并去除前若干列
+        standard_img = np.ones_like(img) * 255
+        img_like = np.empty_like(img)
+        img_like[:, :, :] = img[:, 0:1, :]
+        img = (img / img_like * standard_img)[:, delete_columns:, :]
+        return img
+
+    def realtime_correct(self, img:np.ndarray, correct_col_num: int, cut_col_num: Optional[int] = None,
+                         standard_color: Optional[tuple] = (255, 255, 255)) -> np.ndarray:
+        """
+        实时利用左侧边的correct_col_num列进行色彩校正
+
+        :param img: 待校正的图片 shape = (n_rows, n_cols, n_channels)
+        :param correct_col_num: 用于矫正的列数
+        :param cut_col_num: 最终要去除的列数, 默认为None, 表示去除correct_col_num列
+        :param standard_color: 标准色彩, 默认为白色
+        :return: 校正后的图片 shape = (n_rows, n_cols - cut_col_num, n_channels)
+        """
+        # 按照correct_col_num列数量取出最左侧校正板区域成像结果
+        correct_img = img[:, :correct_col_num, :]
+        # 校正区域进行均值化
+        correct_scaler = np.mean(correct_img, axis=1) / np.array(standard_color)
+        # 校正区域的均值除以原图的均值
+        if cut_col_num is None:
+            cut_col_num = correct_col_num
+        img = img[:, cut_col_num:, :] / correct_scaler[:, np.newaxis, :]
+        img = np.clip(img, 0, 255).astype(dtype=np.uint8)
+        return img
 
 
 if __name__ == '__main__':
