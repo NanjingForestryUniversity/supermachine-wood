@@ -34,7 +34,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
     elif cmd == 'TR':
         detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
         model_name = None
-        if "/n" in data:
+        if ":" in data:
             data, model_name = data.split(":", 1)
             model_name = model_name + ".p"
         settings.data_path = data
