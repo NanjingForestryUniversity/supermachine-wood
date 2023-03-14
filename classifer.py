@@ -29,11 +29,11 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [0, 1]
+FEATURE_INDEX = [0, 1, 2]
 delete_columns = 10        # 已弃用
 
 class WoodClass(object):
-    def __init__(self, load_from=None, w=2048, h=12450, n=5000, p1=0.3, pur=0.99999, single_pick_mode=False,
+    def __init__(self, load_from=None, w=2048, h=12450, n=5000, p1=0.3, pur=0.99999, left_correct=False, single_pick_mode=False,
                  debug_mode=False):
         """
         初始化.
@@ -56,6 +56,7 @@ class WoodClass(object):
             self.set_purity(self.pur)
             self.change_pick_mode(single_pick_mode)
             self.model = LogisticRegression(C=1e5)
+            self.left_correct = left_correct
             # self.model = KNeighborsClassifier()
         else:
             self.load(load_from)
@@ -215,7 +216,7 @@ class WoodClass(object):
             file_name = os.path.join(ROOT_DIR, "models", file_name)
         model_dic = {"n": self.n, "k": self.k, "p1": self.p1, "pur": self.pur, "model": self.model,
                      "ww": self.ww, "hh": self.hh, "width": self.width, "w": self.w, "h": self.h,
-                     "mode": self._single_pick, "isCorrect": self.isCorrect}
+                     "mode": self._single_pick, "isCorrect": self.isCorrect, "left_correct": self.left_correct}
         with open(file_name, "wb") as f:
             pickle.dump(model_dic, f)
         self.log.log("Save file to '" + str(file_name) + "'")
@@ -250,6 +251,7 @@ class WoodClass(object):
         self._single_pick = model_dic["mode"]
         self.set_purity(self.pur)
         self.change_pick_mode(self._single_pick)
+        self.left_correct = model_dic["left_correct"]
         return 0
 
     def extract_feature(self, x, correct_color=False, remove_background=False, debug_mode=False):
@@ -274,8 +276,11 @@ class WoodClass(object):
         x = cv2.cvtColor(x, cv2.COLOR_BGR2LAB)
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0]*x.shape[1], x.shape[2]))
-        x = x[np.argsort(x[:, 0])]
-        x = x[-self.k:, :]
+        hist, bins = np.histogram(x[:, 0], bins=10)
+        # x = x[np.argsort(x[:, 0])]
+        # x = x[-self.k:, :]
+        hist_number = np.argmax(hist)
+        x = x[(x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number+1]), :]
         if debug_mode:
             # self.log.log(x)
             self.log.log(x.shape)
@@ -389,15 +394,16 @@ class WoodClass(object):
         :param standard_color: 标准色彩, 默认为白色
         :return: 校正后的图片 shape = (n_rows, n_cols - cut_col_num, n_channels)
         """
-        # 按照correct_col_num列数量取出最左侧校正板区域成像结果
-        correct_img = img[:, :correct_col_num, :]
-        # 校正区域进行均值化
-        correct_scaler = np.mean(correct_img, axis=1) / np.array(standard_color)
-        # 校正区域的均值除以原图的均值
-        if cut_col_num is None:
-            cut_col_num = correct_col_num
-        img = img[:, cut_col_num:, :] / correct_scaler[:, np.newaxis, :]
-        img = np.clip(img, 0, 255).astype(dtype=np.uint8)
+        if self.left_correct:
+            # 按照correct_col_num列数量取出最左侧校正板区域成像结果
+            correct_img = img[:, :correct_col_num, :]
+            # 校正区域进行均值化
+            correct_scaler = np.mean(correct_img, axis=1) / np.array(standard_color)
+            # 校正区域的均值除以原图的均值
+            if cut_col_num is None:
+                cut_col_num = correct_col_num
+            img = img[:, cut_col_num:, :] / correct_scaler[:, np.newaxis, :]
+            img = np.clip(img, 0, 255).astype(dtype=np.uint8)
         return img
 
 
