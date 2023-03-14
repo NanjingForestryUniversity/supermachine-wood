@@ -277,6 +277,8 @@ class WoodClass(object):
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0]*x.shape[1], x.shape[2]))
         hist, bins = np.histogram(x[:, 0], bins=10)
+        hist = hist[1:]
+        bins = bins[1:]
         # x = x[np.argsort(x[:, 0])]
         # x = x[-self.k:, :]
         hist_number = np.argmax(hist)
