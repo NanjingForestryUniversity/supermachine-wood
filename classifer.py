@@ -119,16 +119,29 @@ class WoodClass(object):
         model_name = self.save(file_name)
         return model_name
 
-    def fit(self, x, y, test_size=0.1):
+    def fit(self, x, y, test_size=0.3):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=0)
         self.model.fit(x_train, y_train)
         y_pred = self.model.predict(x_test)
+
+        #将y_pred中1和2转化为1
+        y_pred[y_pred == 2] = 1
+        y_test[y_test == 2] = 1
+
         pre_score = accuracy_score(y_test, y_pred)
         self.log.log("Test accuracy is:" + str(pre_score * 100) + "%.")
         y_pred = self.model.predict(x_train)
+
+        y_pred[y_pred == 2] = 1
+        y_train[y_train == 2] = 1
+
         pre_score = accuracy_score(y_train, y_pred)
         self.log.log("Train accuracy is:" + str(pre_score * 100) + "%.")
         y_pred = self.model.predict(x)
+
+        y[y == 2] = 1
+        y_pred[y_pred == 2] = 1
+
         pre_score = accuracy_score(y, y_pred)
         self.log.log("Total accuracy is:" + str(pre_score * 100) + "%.")
         return int(pre_score * 100)
@@ -279,13 +292,16 @@ class WoodClass(object):
         x = cv2.cvtColor(x, cv2.COLOR_BGR2LAB)
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2]))
-        hist, bins = np.histogram(x[:, 0], bins=num_bins)
-        hist = hist[1:]
-        bins = bins[1:]
-        # x = x[np.argsort(x[:, 0])]
-        # x = x[-self.k:, :]
-        hist_number = np.argmax(hist)
-        x = x[(x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1]), :]
+
+        x = x[np.argsort(x[:, 0])]
+        x = x[-self.k:, :]
+
+        # hist, bins = np.histogram(x[:, 0], bins=num_bins)
+        # hist = hist[1:]
+        # bins = bins[1:]
+        # hist_number = np.argmax(hist)
+        # x = x[(x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1]), :]
+
         if debug_mode:
             # self.log.log(x)
             self.log.log(x.shape)
@@ -399,7 +415,7 @@ class WoodClass(object):
         :return: 校正后的图片 shape = (n_rows, n_cols - cut_col_num, n_channels)
         """
         if self.left_correct:
-            img = img[:, 20:, :]
+            img = img[:, 20:, :]         # 图片黑边需要去除
             # 按照correct_col_num列数量取出最左侧校正板区域成像结果
             correct_img = img[:, :correct_col_num, :]
             # 校正区域进行均值化
@@ -417,7 +433,7 @@ if __name__ == '__main__':
 
     settings = Config()
     # 初始化wood
-    wood = WoodClass(w=4096, h=1200, n=12500, p1=0.4, debug_mode=False)
+    wood = WoodClass(w=4096, h=1200, n=8000, p1=0.46, debug_mode=False)
     print("色彩纯度控制量{}/{}".format(wood.k, wood.n))
     data_path = settings.data_path
     # wood.correct()
@@ -426,7 +442,7 @@ if __name__ == '__main__':
     settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
-    pic = cv2.imread(r"data/duizhao/rgb7.png")
+    pic = cv2.imread(r"data/99/dark/rgb70.png")
     start_time = time.time()
     # for i in range(100):
     wood_color = wood.predict(pic)

@@ -28,6 +28,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
     """
     result = ''
     if cmd == 'IM':
+        data = np.clip(data, 0, 255).astype(dtype=np.uint8)
         wood_color = detector.predict(data)
         result = {0: 'dark', 1: 'middle', 2: 'light'}[wood_color]
         response = simple_sock(connected_sock, cmd_type=cmd, result=wood_color)
