@@ -31,6 +31,7 @@ import utils
 
 FEATURE_INDEX = [0, 1, 2]
 delete_columns = 10        # 已弃用
+num_bins = 10
 
 class WoodClass(object):
     def __init__(self, load_from=None, w=2048, h=12450, n=5000, p1=0.3, pur=0.99999, left_correct=False, single_pick_mode=False,
@@ -276,7 +277,7 @@ class WoodClass(object):
         x = cv2.cvtColor(x, cv2.COLOR_BGR2LAB)
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0]*x.shape[1], x.shape[2]))
-        hist, bins = np.histogram(x[:, 0], bins=10)
+        hist, bins = np.histogram(x[:, 0], bins=num_bins)
         hist = hist[1:]
         bins = bins[1:]
         # x = x[np.argsort(x[:, 0])]

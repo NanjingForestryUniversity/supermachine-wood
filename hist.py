@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-img_path = 'data/data1015/middle/rgb0.png'
+img_path = 'data/data1103/dark/rgb20.png'
 img = cv2.imread(img_path)
 img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 x = img.reshape(img.shape[0]*img.shape[1], img.shape[2])
@@ -16,5 +16,5 @@ y = np.zeros((img.shape[0]*img.shape[1], img.shape[2]), dtype=np.uint8)
 y[:, ] = mean_value
 #lab转rgb再保存
 y = cv2.cvtColor(y.reshape(img.shape[0], img.shape[1], img.shape[2]), cv2.COLOR_LAB2BGR)
-cv2.imwrite('3.png', y.reshape(img.shape[0], img.shape[1], img.shape[2]))
+cv2.imwrite('5.png', y.reshape(img.shape[0], img.shape[1], img.shape[2]))
 
