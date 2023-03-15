@@ -31,7 +31,7 @@ import utils
 
 FEATURE_INDEX = [0, 1, 2]
 delete_columns = 10  # 已弃用
-num_bins = 10
+num_bins = 7
 
 
 class WoodClass(object):
@@ -293,14 +293,14 @@ class WoodClass(object):
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2]))
 
-        x = x[np.argsort(x[:, 0])]
-        x = x[-self.k:, :]
+        # x = x[np.argsort(x[:, 0])]
+        # x = x[-self.k:, :]
 
-        # hist, bins = np.histogram(x[:, 0], bins=num_bins)
-        # hist = hist[1:]
-        # bins = bins[1:]
-        # hist_number = np.argmax(hist)
-        # x = x[(x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1]), :]
+        hist, bins = np.histogram(x[:, 0], bins=num_bins)
+        hist = hist[1:]
+        bins = bins[1:]
+        hist_number = np.argmax(hist)
+        x = x[(x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1]), :]
 
         if debug_mode:
             # self.log.log(x)
