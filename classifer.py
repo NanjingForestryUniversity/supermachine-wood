@@ -14,7 +14,9 @@ import cv2
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.stats import binom
@@ -29,9 +31,9 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [0, 1, 2]
+FEATURE_INDEX = [0,1,2]
 delete_columns = 10  # 已弃用
-num_bins = 7
+num_bins = 10
 
 
 class WoodClass(object):
@@ -58,9 +60,10 @@ class WoodClass(object):
             self._single_pick = single_pick_mode
             self.set_purity(self.pur)
             self.change_pick_mode(single_pick_mode)
-            self.model = LogisticRegression(C=1e5)
+            # self.model = LogisticRegression(C=1e5)
             self.left_correct = left_correct
             # self.model = KNeighborsClassifier()
+            self.model = DecisionTreeClassifier()
         else:
             self.load(load_from)
         self.isCorrect = False
@@ -125,25 +128,32 @@ class WoodClass(object):
         y_pred = self.model.predict(x_test)
 
         #将y_pred中1和2转化为1
-        y_pred[y_pred == 2] = 1
-        y_test[y_test == 2] = 1
+        # y_pred[y_pred == 2] = 1
+        # y_test[y_test == 2] = 1
+
+        print(confusion_matrix(y_test, y_pred))
 
         pre_score = accuracy_score(y_test, y_pred)
         self.log.log("Test accuracy is:" + str(pre_score * 100) + "%.")
         y_pred = self.model.predict(x_train)
 
-        y_pred[y_pred == 2] = 1
-        y_train[y_train == 2] = 1
+        # y_pred[y_pred == 2] = 1
+        # y_train[y_train == 2] = 1
 
         pre_score = accuracy_score(y_train, y_pred)
         self.log.log("Train accuracy is:" + str(pre_score * 100) + "%.")
         y_pred = self.model.predict(x)
 
-        y[y == 2] = 1
-        y_pred[y_pred == 2] = 1
+        # y[y == 2] = 1
+        # y_pred[y_pred == 2] = 1
 
         pre_score = accuracy_score(y, y_pred)
         self.log.log("Total accuracy is:" + str(pre_score * 100) + "%.")
+
+        #显示结果报告
+
+
+
         return int(pre_score * 100)
 
     def calculate_p1(self, x, remove_background=False):
@@ -296,11 +306,25 @@ class WoodClass(object):
         # x = x[np.argsort(x[:, 0])]
         # x = x[-self.k:, :]
 
+
         hist, bins = np.histogram(x[:, 0], bins=num_bins)
         hist = hist[1:]
         bins = bins[1:]
-        hist_number = np.argmax(hist)
-        x = x[(x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1]), :]
+        sorted_indices = np.argsort(hist)
+        hist_number = sorted_indices[-1]
+        second_hist_number = sorted_indices[-2]
+        x = x[((x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1])) | (
+                    (x[:, 0] > bins[second_hist_number]) & (x[:, 0] < bins[second_hist_number + 1])), :]
+
+
+        # hist, bins = np.histogram(x[:, 0], bins=5)
+        # sorted_indices = np.argsort(hist)
+        # hist_number = sorted_indices[-1]
+        # second_hist_number = sorted_indices[-2]
+        # x = x[((x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1])) | (
+        #         (x[:, 0] > bins[second_hist_number]) & (x[:, 0] < bins[second_hist_number + 1])), :]
+
+
 
         if debug_mode:
             # self.log.log(x)
@@ -376,7 +400,7 @@ class WoodClass(object):
             plt.scatter(x_data[:, 0], x_data[:, 1], c=y_data)
             plt.show()
             # 尝试最合适的特征组合，保存提取出的特征的方法
-            # 0: l, 1: a, 2: b, 3: var(l), 4: var(a), 5: var(s), 6: h,  7: s, 8: v, 9: var(h) 10: var(s): 11: var(v)
+            # 0: l, 1: a, 2: b, 3: var(l), 4: var(a), 5: var(b), 6: h,  7: s, 8: v, 9: var(h) 10: var(s): 11: var(v)
             # 全部：0.941
             # [:, [0, 1, 2, 3, 4, 5, 6, 7]] : 0.88
             # [:, [0, 1, 2]] : 0.911
@@ -433,7 +457,7 @@ if __name__ == '__main__':
 
     settings = Config()
     # 初始化wood
-    wood = WoodClass(w=4096, h=1200, n=8000, p1=0.46, debug_mode=False)
+    wood = WoodClass(w=4096, h=1200, n=8000, p1=0.8, debug_mode=False)
     print("色彩纯度控制量{}/{}".format(wood.k, wood.n))
     data_path = settings.data_path
     # wood.correct()
@@ -442,7 +466,7 @@ if __name__ == '__main__':
     settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
-    pic = cv2.imread(r"data/99/dark/rgb70.png")
+    pic = cv2.imread(r"data/316/dark/rgb70.png")
     start_time = time.time()
     # for i in range(100):
     wood_color = wood.predict(pic)
