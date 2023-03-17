@@ -31,7 +31,7 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [1,2,3]
+FEATURE_INDEX = [0,1,2,4]
 delete_columns = 10  # 已弃用
 num_bins = 10
 
@@ -60,10 +60,10 @@ class WoodClass(object):
             self._single_pick = single_pick_mode
             self.set_purity(self.pur)
             self.change_pick_mode(single_pick_mode)
-            self.model = LogisticRegression(C=1e5)
+            # self.model = LogisticRegression(C=1e5)
             self.left_correct = left_correct
             # self.model = KNeighborsClassifier()
-            # self.model = DecisionTreeClassifier()
+            self.model = DecisionTreeClassifier()
         else:
             self.load(load_from)
         self.isCorrect = False
@@ -113,7 +113,7 @@ class WoodClass(object):
         :return:
         """
         # 训练数据文件位置
-        result = self.get_train_data(data_path, plot_2d=True)
+        result = self.get_train_data(data_path, plot_2d=False)
         if result is False:
             return 0
         x, y = result
@@ -182,9 +182,11 @@ class WoodClass(object):
         feature = feature.reshape(1, -1)[:, FEATURE_INDEX]
         if self.isCorrect:
             feature = feature / (self.correct_color + 1e-4)
-        plt.figure()
-        plt.scatter(feature[:, 0], feature[:, 1])
-        plt.show()
+
+        # plt.figure()
+        # plt.scatter(feature[:, 0], feature[:, 1])
+        # plt.show()
+
         pred_color = self.model.predict(feature)
         if self.debug_mode:
             self.log.log(feature)

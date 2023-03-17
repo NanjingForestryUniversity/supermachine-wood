@@ -33,7 +33,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
         result = {0: 'dark', 1: 'middle', 2: 'light'}[wood_color]
         response = simple_sock(connected_sock, cmd_type=cmd, result=wood_color)
     elif cmd == 'TR':
-        detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
+        detector = WoodClass(w=4096, h=1200, n=8000, p1=0.8, debug_mode=False)
         model_name = None
         if ":" in data:
             data, model_name = data.split(":", 1)
@@ -66,7 +66,7 @@ def main(is_debug=False):
 
     while not dual_sock.status:
         dual_sock.reconnect()
-    detector = WoodClass(w=4096, h=1200, n=3000, debug_mode=False)
+    detector = WoodClass(w=4096, h=1200, n=8000, p1=0.8, debug_mode=False)
     detector.load(path=settings.model_path)
     _ = detector.predict(np.random.randint(1, 254, (1200, 4096, 3), dtype=np.uint8))
     while True:
@@ -80,8 +80,8 @@ def main(is_debug=False):
         # ack_sock(received_sock, cmd_type=cmd)
         response, result = process_cmd(cmd=cmd, data=data, connected_sock=dual_sock, detector=detector, settings=settings)
 
-        if result != "":
-            database.add_data(result)
+        # if result != "":
+        #     database.add_data(result)
 
 
 
