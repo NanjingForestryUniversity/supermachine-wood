@@ -13,7 +13,7 @@ ratio = np.sqrt(5000 / (w * h))
 ww, hh = int(ratio * w), int(ratio * h)
 img = cv2.resize(img, (hh, ww))
 x = img.reshape(img.shape[0]*img.shape[1], img.shape[2])
-
+x = x[x[:,0]>20]
 hist, bins = np.histogram(x[:, 0], bins=10)
 hist = hist[1:]
 bins = bins[1:]
