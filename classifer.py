@@ -31,7 +31,7 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [0,1,2,4]
+FEATURE_INDEX = [0,1,2]
 delete_columns = 10  # 已弃用
 num_bins = 10
 
@@ -60,10 +60,10 @@ class WoodClass(object):
             self._single_pick = single_pick_mode
             self.set_purity(self.pur)
             self.change_pick_mode(single_pick_mode)
-            # self.model = LogisticRegression(C=1e5)
+            self.model = LogisticRegression(C=1e5)
             self.left_correct = left_correct
             # self.model = KNeighborsClassifier()
-            self.model = DecisionTreeClassifier()
+            # self.model = DecisionTreeClassifier()
         else:
             self.load(load_from)
         self.isCorrect = False
@@ -113,7 +113,7 @@ class WoodClass(object):
         :return:
         """
         # 训练数据文件位置
-        result = self.get_train_data(data_path, plot_2d=False)
+        result = self.get_train_data(data_path, plot_2d=True)
         if result is False:
             return 0
         x, y = result
@@ -122,7 +122,7 @@ class WoodClass(object):
         model_name = self.save(file_name)
         return model_name
 
-    def fit(self, x, y, test_size=0.7):
+    def fit(self, x, y, test_size=0.3):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=0)
         self.model.fit(x_train, y_train)
         y_pred = self.model.predict(x_test)
@@ -304,14 +304,14 @@ class WoodClass(object):
         x = cv2.cvtColor(x, cv2.COLOR_BGR2LAB)
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2]))
-
+        x = x[x[:, 0] > 30]
         # x = x[np.argsort(x[:, 0])]
         # x = x[-self.k:, :]
 
 
         hist, bins = np.histogram(x[:, 0], bins=num_bins)
-        hist = hist[1:]
-        bins = bins[1:]
+        # hist = hist[1:]
+        # bins = bins[1:]
         sorted_indices = np.argsort(hist)
         hist_number = sorted_indices[-1]
         second_hist_number = sorted_indices[-2]
@@ -367,6 +367,16 @@ class WoodClass(object):
             data = self.extract_feature(train_img)
             img_data.append(data)
         img_data = np.array(img_data)
+
+        # 提取图像名称
+        img_name = [os.path.splitext(file)[0] for file in files]
+        # 提取每个图像名称中的数字
+        img_name = [name[3:] for name in img_name]
+        # 将图像名称个位数前补零
+        img_name = [name.zfill(2) for name in img_name]
+        # 打印图像名称
+        print('img_name:', img_name)
+
         return img_data
 
     def get_train_data(self, data_dir=None, plot_2d=False, plot_data_3d=False, save_data=False):
@@ -386,6 +396,46 @@ class WoodClass(object):
         light_label = 2 * np.ones(len(light_data)).T
         y_data = np.hstack((dark_label, middle_label, light_label))
         x_data = x_data[:, FEATURE_INDEX]
+
+        # 使用KMeans算法对图片数据进行聚类
+        kmeans = KMeans(n_clusters=3, random_state=0).fit(x_data)
+        z = kmeans.predict(x_data)
+        # 获取聚类后的数据
+        dark = x_data[kmeans.labels_ == 0]
+        middle = x_data[kmeans.labels_ == 1]
+        light = x_data[kmeans.labels_ == 2]
+        # 获取数据的均值
+        dark_mean = np.mean(dark, axis=0)
+        middle_mean = np.mean(middle, axis=0)
+        light_mean = np.mean(light, axis=0)
+
+        # 按照平均值从小到大排序
+        sorted_cluster_indices = np.argsort([dark_mean[0], middle_mean[0], light_mean[0]])
+        print('sorted_cluster_indices:', sorted_cluster_indices)
+        # 重新编号聚类标签
+        sorted_labels = np.zeros(len(kmeans.labels_), dtype=int)
+        for i, label in enumerate(kmeans.labels_):
+            sorted_labels[i] = sorted_cluster_indices[label]
+        # 更新kmeans.labels_
+        kmeans.labels_ = sorted_labels
+        print('kmeans.labels_:', kmeans.labels_)
+        # 获取更新聚类后的数据
+        dark_new = x_data[kmeans.labels_ == 0]
+        middle_new = x_data[kmeans.labels_ == 1]
+        light_new = x_data[kmeans.labels_ == 2]
+        # 获取更新数据的均值
+        dark_mean_new = np.mean(dark_new, axis=0)
+        middle_mean_new = np.mean(middle_new, axis=0)
+        light_mean_new = np.mean(light_new, axis=0)
+        # 打印每个聚类的平均值
+        print('Dark cluster mean:', dark_mean_new)
+        print('Middle cluster mean:', middle_mean_new)
+        print('Light cluster mean:', light_mean_new)
+        # plot_2d
+        plt.figure()
+        plt.scatter(x_data[:, 0], x_data[:, 1], c=z)
+        plt.show()
+
         # 进行色彩数据校正
         if self.isCorrect:
             x_data = x_data / (self.correct_color + 1e-4)
@@ -440,8 +490,8 @@ class WoodClass(object):
         :param standard_color: 标准色彩, 默认为白色
         :return: 校正后的图片 shape = (n_rows, n_cols - cut_col_num, n_channels)
         """
+        img = img[:, 20:, :]  # 图片黑边需要去除
         if self.left_correct:
-            img = img[:, 20:, :]         # 图片黑边需要去除
             # 按照correct_col_num列数量取出最左侧校正板区域成像结果
             correct_img = img[:, :correct_col_num, :]
             # 校正区域进行均值化
@@ -468,7 +518,7 @@ if __name__ == '__main__':
     settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
-    pic = cv2.imread(r"data/316/dark/rgb70.png")
+    pic = cv2.imread(r"data/318/dark/rgb89.png")
     start_time = time.time()
     # for i in range(100):
     wood_color = wood.predict(pic)

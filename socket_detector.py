@@ -45,6 +45,8 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
         settings.model_path = data
         detector.load(path=settings.model_path)
         response = simple_sock(connected_sock, cmd_type=cmd)
+    elif cmd == 'DT':
+        pass
     else:
         logging.error(f'错误指令，指令为{cmd}')
         response = False
