@@ -9,7 +9,7 @@ from classifer import WoodClass
 import time
 import os
 
-from database import Database
+# from database import Database
 from root_dir import ROOT_DIR
 from utils import PreSocket, receive_sock, parse_protocol, ack_sock, done_sock, DualSock, simple_sock
 import logging
@@ -68,7 +68,7 @@ def main(is_debug=False):
                         handlers=[file_handler, console_handler], level=logging.DEBUG)
     dual_sock = DualSock(connect_ip='127.0.0.1')
 
-    database = Database(settings.database_addr)
+    # database = Database(settings.database_addr)
 
 
     while not dual_sock.status:

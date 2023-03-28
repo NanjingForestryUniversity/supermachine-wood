@@ -551,8 +551,8 @@ class WoodClass(object):
         labels = [mapping[i] for i in labels]
         data = []
         for i in range(len(img_names)):
-            x_tmp = np.round(x_data[i, :]).astype(np.int)
-            x_tmp = np.char.zfill(x_tmp.astype(np.str), 3)
+            x_tmp = np.round(x_data[i, :]).astype(np.int_)
+            x_tmp = np.char.zfill(x_tmp.astype(np.str_), 3)
             x_tmp = "".join(x_tmp)
             data.append(x_tmp + y_data[i] + labels[i])
         return data
@@ -569,7 +569,7 @@ if __name__ == '__main__':
     # wood.correct()
     # wood.load()
     # fit 相应的文件夹
-    # settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
+    settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
 
     x_data, y_data, labels, img_names = wood.get_kmeans_data(data_path, plot_2d=False)
     send_data = wood.data_adjustments(x_data, y_data, labels, img_names)

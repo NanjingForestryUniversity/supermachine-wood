@@ -260,7 +260,9 @@ def parse_protocol(data: bytes) -> (str, any):
     elif cmd == 'MD':
         data = data.decode('ascii')
         return cmd, data
-
+    elif cmd == 'KM':
+        data = data.decode('ascii')
+        return cmd, data
 
 def ack_sock(send_sock: socket.socket, cmd_type: str) -> bool:
     '''
@@ -336,7 +338,7 @@ def simple_sock(send_sock: socket.socket, cmd_type: str, result) -> bool:
         result = result.encode('ascii')
         result = b',' + result
         length = len(result)
-        msg = msg + length.to_bytes(1, 'big') + result
+        msg = msg + length.to_bytes(4, 'big') + result
     try:
         send_sock.send(msg)
     except Exception as e:

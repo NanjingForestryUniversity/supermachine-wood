@@ -155,6 +155,27 @@ def main():
             #     print('指令执行完毕')
             # else:
             #     print('指令执行失败')
+        elif cmd == 'KM':
+            model = "E:/wood_color/data/2023318"
+            # model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
+            model = model.encode('ascii')
+            length = len(model) + 4
+            length = length.to_bytes(4, byteorder='big')
+            send_message = b'\xaa' + length + ('  ' + cmd).upper().encode('ascii') + model + b'\xff\xff\xbb'
+            socket_send_1.send(send_message)
+            print('发送成功')
+            result = socket_send_2.recv(5)
+            new_leng = int.from_bytes(result[1:], byteorder='big')
+            result = socket_send_2.recv(new_leng)
+            print(result)
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=True):
+            #     print('接收指令成功')
+            # else:
+            #     print('接收指令失败')
+            # if rec_socket(socket_send_2, cmd_type=cmd, ack=False):
+            #     print('指令执行完毕')
+            # else:
+            #     print('指令执行失败')
         else:
             print('指令错误')
 
