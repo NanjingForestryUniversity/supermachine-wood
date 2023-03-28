@@ -16,7 +16,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 
-
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from scipy.stats import binom
@@ -31,7 +30,7 @@ sys.path.append(os.getcwd())
 from root_dir import ROOT_DIR
 import utils
 
-FEATURE_INDEX = [0,1,2]#因为显示需要，所以0,1,2分别为lab，是必须使用的，不然会影响图片显示
+FEATURE_INDEX = [0, 1, 2]  # 因为显示需要，所以0,1,2分别为lab，是必须使用的，不然会影响图片显示
 delete_columns = 10  # 已弃用
 num_bins = 10
 
@@ -127,7 +126,7 @@ class WoodClass(object):
         self.model.fit(x_train, y_train)
         y_pred = self.model.predict(x_test)
 
-        #将y_pred中1和2转化为1
+        # 将y_pred中1和2转化为1
         # y_pred[y_pred == 2] = 1
         # y_test[y_test == 2] = 1
 
@@ -150,9 +149,7 @@ class WoodClass(object):
         pre_score = accuracy_score(y, y_pred)
         self.log.log("Total accuracy is:" + str(pre_score * 100) + "%.")
 
-        #显示结果报告
-
-
+        # 显示结果报告
 
         return int(pre_score * 100)
 
@@ -308,7 +305,6 @@ class WoodClass(object):
         # x = x[np.argsort(x[:, 0])]
         # x = x[-self.k:, :]
 
-
         hist, bins = np.histogram(x[:, 0], bins=num_bins)
         # hist = hist[1:]
         # bins = bins[1:]
@@ -316,8 +312,7 @@ class WoodClass(object):
         hist_number = sorted_indices[-1]
         second_hist_number = sorted_indices[-2]
         x = x[((x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1])) | (
-                    (x[:, 0] > bins[second_hist_number]) & (x[:, 0] < bins[second_hist_number + 1])), :]
-
+                (x[:, 0] > bins[second_hist_number]) & (x[:, 0] < bins[second_hist_number + 1])), :]
 
         # hist, bins = np.histogram(x[:, 0], bins=9)
         # sorted_indices = np.argsort(hist)
@@ -325,8 +320,6 @@ class WoodClass(object):
         # second_hist_number = sorted_indices[-2]
         # x = x[((x[:, 0] > bins[hist_number]) & (x[:, 0] < bins[hist_number + 1])) | (
         #         (x[:, 0] > bins[second_hist_number]) & (x[:, 0] < bins[second_hist_number + 1])), :]
-
-
 
         if debug_mode:
             # self.log.log(x)
@@ -531,7 +524,6 @@ class WoodClass(object):
         for i in range(labels.shape[0]):
             labels[i] = sorted_cluster_indices[labels[i]]
 
-
         if plot_2d:
             plt.figure()
             plt.scatter(x_data[:, 0], x_data[:, 1], c=labels)
@@ -539,7 +531,21 @@ class WoodClass(object):
 
         return x_data, y_data, labels, img_names
 
-
+    def data_adjustments(self, x_data, y_data, labels, img_names):
+        '''
+        数据调整
+        :param x_data: 提取的特征
+        :param y_data: 初始的类别
+        :param labels: 聚类后的类别
+        :param img_names: 文件名
+        :return: 调整后的数据
+        '''
+        sorted_idx = sorted(range(len(img_names)), key=lambda x: int(img_names[x][3:-4]))
+        x_data = x_data[sorted_idx, [0, 1, 2]]
+        y_data = y_data[sorted_idx]
+        labels = labels[sorted_idx]
+        img_names = img_names[sorted_idx]
+        return x_data, y_data, labels, img_names
 
 
 if __name__ == '__main__':
@@ -556,7 +562,6 @@ if __name__ == '__main__':
     settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
 
     wood.get_kmeans_data(data_path, plot_2d=True)
-
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
     pic = cv2.imread(r"data/318/dark/rgb89.png")
