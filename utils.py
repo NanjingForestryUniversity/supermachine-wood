@@ -278,7 +278,7 @@ def ack_sock(send_sock: socket.socket, cmd_type: str) -> bool:
     return True
 
 
-def done_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bool:
+def done_sock(send_sock: socket.socket, cmd_type: str, result) -> bool:
     '''
     发送任务完成指令
     :param cmd_type:指令类型
@@ -292,8 +292,17 @@ def done_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bool
             logging.error('结果在这种指令里很没必要')
         result = b'\xff'
     elif cmd_type == 'IM':
-        result = result.to_bytes(1, "big")
-    msg = b'\xaa\x00\x00\x00\x05' + (' D' + cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
+        if result == 0:
+            result = b'S'
+        elif result == 1:
+            result = b'Z'
+        elif result == 2:
+            result = b'Q'
+    elif cmd_type == 'KM':
+        result.encode('ascii')
+    length = len(result) + 4
+    length = length.to_bytes(4, byteorder='big')
+    msg = b'\xaa' +length + (' D' + cmd_type).upper().encode('ascii') + result + b'\xff\xff\xbb'
     try:
         send_sock.send(msg)
     except Exception as e:
@@ -302,7 +311,7 @@ def done_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bool
     return True
 
 
-def simple_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bool:
+def simple_sock(send_sock: socket.socket, cmd_type: str, result) -> bool:
     '''
     发送任务完成指令
     :param cmd_type:指令类型
@@ -322,13 +331,18 @@ def simple_sock(send_sock: socket.socket, cmd_type: str, result: int = '') -> bo
         msg = b'A'
     elif cmd_type == 'MD':
         msg = b'D'
+    elif cmd_type == 'KM':
+        msg = b'K'
+        result = result.encode('ascii')
+        result = b',' + result
+        length = len(result)
+        msg = msg + length.to_bytes(1, 'big') + result
     try:
         send_sock.send(msg)
     except Exception as e:
         logging.error(f'发送完成指令失败，错误类型：{e}')
         return False
     return True
-
 
 
 

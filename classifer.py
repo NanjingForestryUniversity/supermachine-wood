@@ -508,6 +508,7 @@ class WoodClass(object):
         :return:
         """
         x_data, y_data, img_names = self.get_train_data(data_dir, plot_2d=plot_2d)
+        x_data = x_data[:, [0, 1, 2]]
         kmeans = KMeans(n_clusters=3, random_state=0).fit(x_data)
 
         # 获取聚类后的数据
@@ -541,11 +542,20 @@ class WoodClass(object):
         :return: 调整后的数据
         '''
         sorted_idx = sorted(range(len(img_names)), key=lambda x: int(img_names[x][3:-4]))
-        x_data = x_data[sorted_idx, [0, 1, 2]]
+        x_data = x_data[sorted_idx]
         y_data = y_data[sorted_idx]
         labels = labels[sorted_idx]
-        img_names = img_names[sorted_idx]
-        return x_data, y_data, labels, img_names
+        img_names = [img_names[i] for i in sorted_idx]
+        mapping = {0: 's', 1: 'z', 2: 'q'}
+        y_data = [mapping[i] for i in y_data]
+        labels = [mapping[i] for i in labels]
+        data = []
+        for i in range(len(img_names)):
+            x_tmp = np.round(x_data[i, :]).astype(np.int)
+            x_tmp = np.char.zfill(x_tmp.astype(np.str), 3)
+            x_tmp = "".join(x_tmp)
+            data.append(x_tmp + y_data[i] + labels[i])
+        return data
 
 
 if __name__ == '__main__':
@@ -559,9 +569,10 @@ if __name__ == '__main__':
     # wood.correct()
     # wood.load()
     # fit 相应的文件夹
-    settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
+    # settings.model_path = str(ROOT_DIR / 'models' / wood.fit_pictures(data_path=data_path))
 
-    wood.get_kmeans_data(data_path, plot_2d=True)
+    x_data, y_data, labels, img_names = wood.get_kmeans_data(data_path, plot_2d=False)
+    send_data = wood.data_adjustments(x_data, y_data, labels, img_names)
 
     # 测试单张图片的预测，predict_mode=True表示导入本地的model, False为现场训练的
     pic = cv2.imread(r"data/318/dark/rgb89.png")
