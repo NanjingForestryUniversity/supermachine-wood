@@ -394,45 +394,6 @@ class WoodClass(object):
         # dark_name, middle_name, light_name三个list合并
         img_name = dark_name + middle_name + light_name
 
-        # # 使用KMeans算法对图片数据进行聚类
-        # kmeans = KMeans(n_clusters=3, random_state=0).fit(x_data)
-        # z = kmeans.predict(x_data)
-        # # 获取聚类后的数据
-        # dark = x_data[kmeans.labels_ == 0]
-        # middle = x_data[kmeans.labels_ == 1]
-        # light = x_data[kmeans.labels_ == 2]
-        # # 获取数据的均值
-        # dark_mean = np.mean(dark, axis=0)
-        # middle_mean = np.mean(middle, axis=0)
-        # light_mean = np.mean(light, axis=0)
-        #
-        # # 按照平均值从小到大排序
-        # sorted_cluster_indices = np.argsort([dark_mean[0], middle_mean[0], light_mean[0]])
-        # print('sorted_cluster_indices:', sorted_cluster_indices)
-        # # 重新编号聚类标签
-        # sorted_labels = np.zeros(len(kmeans.labels_), dtype=int)
-        # for i, label in enumerate(kmeans.labels_):
-        #     sorted_labels[i] = sorted_cluster_indices[label]
-        # # 更新kmeans.labels_
-        # kmeans.labels_ = sorted_labels
-        # print('kmeans.labels_:', kmeans.labels_)
-        # # 获取更新聚类后的数据
-        # dark_new = x_data[kmeans.labels_ == 0]
-        # middle_new = x_data[kmeans.labels_ == 1]
-        # light_new = x_data[kmeans.labels_ == 2]
-        # # 获取更新数据的均值
-        # dark_mean_new = np.mean(dark_new, axis=0)
-        # middle_mean_new = np.mean(middle_new, axis=0)
-        # light_mean_new = np.mean(light_new, axis=0)
-        # # 打印每个聚类的平均值
-        # print('Dark cluster mean:', dark_mean_new)
-        # print('Middle cluster mean:', middle_mean_new)
-        # print('Light cluster mean:', light_mean_new)
-        # # plot_2d
-        # plt.figure()
-        # plt.scatter(x_data[:, 0], x_data[:, 1], c=z)
-        # plt.show()
-
         # 进行色彩数据校正
         if self.isCorrect:
             x_data = x_data / (self.correct_color + 1e-4)
