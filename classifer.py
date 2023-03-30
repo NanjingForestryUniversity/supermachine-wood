@@ -507,7 +507,7 @@ class WoodClass(object):
         y_data = y_data[sorted_idx]
         labels = labels[sorted_idx]
         img_names = [img_names[i] for i in sorted_idx]
-        mapping = {0: 's', 1: 'z', 2: 'q'}
+        mapping = {0: 'S', 1: 'Z', 2: 'Q'}
         y_data = [mapping[i] for i in y_data]
         labels = [mapping[i] for i in labels]
         data = []
