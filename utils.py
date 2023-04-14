@@ -280,7 +280,7 @@ def ack_sock(send_sock: socket.socket, cmd_type: str) -> bool:
     return True
 
 
-def done_sock(send_sock: socket.socket, cmd_type: str, result) -> bool:
+def done_sock(send_sock: socket.socket, cmd_type: str, result = '') -> bool:
     '''
     发送任务完成指令
     :param cmd_type:指令类型

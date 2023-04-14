@@ -35,16 +35,16 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
     elif cmd == 'TR':
         detector = WoodClass(w=4096, h=1200, n=8000, p1=0.8, debug_mode=False)
         model_name = None
-        if ":" in data:
-            data, model_name = data.split(":", 1)
+        if "$" in data:
+            data, model_name = data.split("$", 1)
             model_name = model_name + ".p"
         settings.data_path = data
         settings.model_path = ROOT_DIR / 'models' / detector.fit_pictures(data_path=settings.data_path, file_name=model_name)
-        response = simple_sock(connected_sock, cmd_type=cmd)
+        response = simple_sock(connected_sock, cmd_type=cmd, result=result)
     elif cmd == 'MD':
         settings.model_path = data
         detector.load(path=settings.model_path)
-        response = simple_sock(connected_sock, cmd_type=cmd)
+        response = simple_sock(connected_sock, cmd_type=cmd, result=result)
     elif cmd == 'KM':
         x_data, y_data, labels, img_names = detector.get_kmeans_data(data, plot_2d=False)
         result = detector.data_adjustments(x_data, y_data, labels, img_names)

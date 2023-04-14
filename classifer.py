@@ -238,7 +238,7 @@ class WoodClass(object):
         """
         if file_name is None:
             file_name = "model_" + time.strftime("%Y-%m-%d_%H-%M") + ".p"
-            file_name = os.path.join(ROOT_DIR, "models", file_name)
+        file_name = os.path.join(ROOT_DIR, "models", file_name)
         model_dic = {"n": self.n, "k": self.k, "p1": self.p1, "pur": self.pur, "model": self.model,
                      "ww": self.ww, "hh": self.hh, "width": self.width, "w": self.w, "h": self.h,
                      "mode": self._single_pick, "isCorrect": self.isCorrect, "left_correct": self.left_correct}
