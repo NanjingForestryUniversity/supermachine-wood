@@ -165,6 +165,7 @@ def main():
             socket_send_1.send(send_message)
             print('发送成功')
             result = socket_send_2.recv(5)
+            print(result)
             new_leng = int.from_bytes(result[1:], byteorder='big')
             result = socket_send_2.recv(new_leng)
             print(result)
