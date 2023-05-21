@@ -13,3 +13,7 @@ __pycache__
 test.py
 *.log
 .models
+data
+*.png
+models
+*.json
