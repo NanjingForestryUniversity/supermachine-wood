@@ -484,7 +484,9 @@ class WoodClass(object):
         sorted_cluster_indices = np.argsort([dark_mean[0], middle_mean[0], light_mean[0]])
         labels = kmeans.labels_
         for i in range(labels.shape[0]):
-            labels[i] = sorted_cluster_indices[labels[i]]
+            indices = np.where(labels[i] == sorted_cluster_indices)
+            labels[i] = indices[0][0]
+
 
         if plot_2d:
             plt.figure()

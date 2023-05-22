@@ -156,7 +156,7 @@ def main():
             # else:
             #     print('指令执行失败')
         elif cmd == 'KM':
-            model = r"C:\Users\FEIJINTI\OneDrive\PycharmProjects\wood_color\data\316"
+            model = r"E:\wood_color\data\318"
             # model = "C:/Users/FEIJINTI/PycharmProjects/wood_color/models/model_2020-11-08_20-49.p"
             model = model.encode('ascii')
             length = len(model) + 4
