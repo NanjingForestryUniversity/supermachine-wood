@@ -46,7 +46,7 @@ def process_cmd(cmd: str, data: any, connected_sock: socket.socket, detector: Wo
         detector.load(path=settings.model_path)
         response = simple_sock(connected_sock, cmd_type=cmd, result=result)
     elif cmd == 'KM':
-        x_data, y_data, labels, img_names = detector.get_kmeans_data(data, plot_2d=True)
+        x_data, y_data, labels, img_names = detector.get_luminance_data(data, plot_2d=True)
         result = detector.data_adjustments(x_data, y_data, labels, img_names)
         result = ','.join([str(x) for x in result])
         response = simple_sock(connected_sock, cmd_type=cmd, result=result)
