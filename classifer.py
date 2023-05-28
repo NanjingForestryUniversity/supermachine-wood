@@ -301,7 +301,7 @@ class WoodClass(object):
         x = cv2.cvtColor(x, cv2.COLOR_BGR2LAB)
         x = np.concatenate((x, x_hsv), axis=2)
         x = np.reshape(x, (x.shape[0] * x.shape[1], x.shape[2]))
-        x = x[x[:, 0] > 30]
+        x = x[x[:, 0] > 40]
         # x = x[np.argsort(x[:, 0])]
         # x = x[-self.k:, :]
 
@@ -474,12 +474,13 @@ class WoodClass(object):
         middle_num = len(x_data[y_data == 1])
         light_num = len(x_data[y_data == 2])
         # 将数据按照亮度进行排序
-        x_data = x_data[np.argsort(x_data[:, 0])]
-        # 按照x的顺序，将y和names也进行排序
-        y_data = y_data[np.argsort(x_data[:, 0])]
-        # 按照x的顺序，将img_names也进行排序，但是这里需要注意，img_names是一个list，所以需要先转换成np.array
-        img_names = [img_names[i] for i in np.argsort(x_data[:, 0])]
-
+        # x_data_sort = x_data[np.argsort(x_data[:, 0])]
+        # # 按照x的顺序，将y和names也进行排序
+        # y_data = y_data[np.argsort(x_data[:, 0])]
+        # # 按照x的顺序，将img_names也进行排序，但是这里需要注意，img_names是一个list，所以需要先转换成np.array
+        # img_names = [img_names[i] for i in np.argsort(x_data[:, 0])]
+        tmp = np.arange(0, 90)
+        tmp = tmp[np.argsort(x_data[:, 0])]
         # 创建一个labels，用于存储每个像素点的标签
         labels = np.zeros_like(x_data[:, 0])
         # 将亮度最低的dark_num个像素点标记为0
@@ -488,6 +489,7 @@ class WoodClass(object):
         labels[-light_num:] = 2
         # 将中间的middle_num个像素点标记为1
         labels[dark_num:-light_num] = 1
+        labels = labels[np.argsort(tmp)]
         if plot_2d:
             plt.figure()
             plt.scatter(x_data[:, 0], x_data[:, 1], c=labels)
