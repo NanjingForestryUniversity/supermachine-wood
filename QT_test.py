@@ -94,7 +94,7 @@ def main():
         cmd = input().strip().upper()
         if cmd == 'IM':
             # img = cv2.imread(r"/Users/zhouchao/Library/CloudStorage/OneDrive-macrosolid/PycharmProjects/wood_color/data/data20220919/dark/rgb60.png")
-            img = cv2.imread(r"C:\Users\FEIJINTI\OneDrive\PycharmProjects\wood_color\data\316\dark\rgb60.png")
+            img = cv2.imread(r"E:\wood_cs\data\529\rgb00.png")
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = np.asarray(img, dtype=np.uint8)
             width = img.shape[0]
